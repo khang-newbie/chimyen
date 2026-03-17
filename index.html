@@ -177,6 +177,27 @@
         transform: scale(1.05);
         box-shadow: 0 0 10px #00d4ff;
       }
+      .about-box {
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 12px;
+        color: #e2e8f0;
+        line-height: 1.6;
+      }
+
+      .about-box h2 {
+        color: #00d4ff;
+        margin-bottom: 10px;
+      }
+
+      .about-box h3 {
+        margin-top: 15px;
+        color: #38bdf8;
+      }
+
+      .about-box ul {
+        padding-left: 20px;
+      }
     </style>
   </head>
   <!-- firebase -->
@@ -226,6 +247,7 @@
       <a href="#" onclick="showPage('connect')">Kết nối</a>
       <a href="#" onclick="showPage('stats')">Thống kê</a>
       <a href="#" onclick="showPage('export')">Hỗ trợ</a>
+      <a href="#" onclick="showPage('about')">Giới thiệu</a>
     </div>
     <!-- MAIN -->
     <div class="main">
@@ -331,9 +353,63 @@
 
       <!--Hỗ trợ -->
       <div id="export" class="page card" style="display: none">
-        <button class="support-btn" onclick="sendEmail()">
-          📧 Gửi hỗ trợ qua Email
-        </button>
+        <div class="support-box">
+          <h2>Hỗ trợ hệ thống</h2>
+
+          <p>
+            Nếu bạn gặp sự cố trong quá trình sử dụng hệ thống giám sát nhà yến,
+            vui lòng gửi yêu cầu hỗ trợ để được xử lý sớm nhất.
+          </p>
+
+          <ul>
+            <li>🔧 Lỗi kết nối thiết bị (ESP32, cảm biến).</li>
+            <li>📡 Không nhận dữ liệu từ Firebase.</li>
+            <li>📊 Sai lệch dữ liệu thống kê.</li>
+            <li>⚙️ Các vấn đề khác liên quan đến hệ thống.</li>
+          </ul>
+
+          <button class="support-btn" onclick="sendEmail()">
+            📧 Gửi yêu cầu hỗ trợ
+          </button>
+        </div>
+      </div>
+      <div id="about" class="page">
+        <div class="about-box">
+          <h2>Giới thiệu hệ thống</h2>
+
+          <p>
+            Đây là hệ thống giám sát nhà yến thông minh ứng dụng công nghệ IoT,
+            giúp theo dõi số lượng chim ra vào theo thời gian thực.
+          </p>
+
+          <p>
+            Hệ thống sử dụng cảm biến LD2410c để phát hiện chuyển động, kết hợp
+            với vi điều khiển ESP32 để xử lý và gửi dữ liệu lên Firebase. Dữ
+            liệu sau đó được hiển thị trên giao diện web dưới dạng biểu đồ trực
+            quan và dễ theo dõi.
+          </p>
+
+          <h3>Chức năng chính:</h3>
+          <ul>
+            <li>📊 Thống kê chim vào / ra theo giờ, ngày, tháng</li>
+            <li>📈 Hiển thị biểu đồ trực quan</li>
+            <li>📡 Theo dõi trạng thái kết nối thiết bị</li>
+            <li>☁️ Đồng bộ dữ liệu thời gian thực với Firebase</li>
+          </ul>
+
+          <h3>Công nghệ sử dụng:</h3>
+          <ul>
+            <li>⚙️ ESP32</li>
+            <li>📡 Cảm biến LD2410c</li>
+            <li>🔥 Firebase Realtime Database</li>
+            <li>🌐 HTML, CSS, JavaScript (Chart.js)</li>
+          </ul>
+
+          <p>
+            Hệ thống giúp nâng cao hiệu quả quản lý nhà yến, giảm công sức và
+            tăng độ chính xác trong việc theo dõi số lượng chim.
+          </p>
+        </div>
       </div>
     </div>
     <!-- biểu đồ đường & cột -->
