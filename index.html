@@ -25,13 +25,13 @@
         padding: 20px 15px;
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 10px;
         box-shadow: 2px 0 15px rgba(0, 0, 0, 0.6);
       }
 
       .sidebar h2 {
         color: #00d4ff;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
       }
 
       .sidebar a {
@@ -156,6 +156,27 @@
         background-color: #1b5e20;
         transform: scale(1.05);
       }
+      .logo {
+        width: 100px;
+        height: auto;
+        display: block;
+        margin: 0 auto 2px;
+      }
+      .support-btn {
+        background: linear-gradient(135deg, #00d4ff, #007bff);
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.3s;
+      }
+
+      .support-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 10px #00d4ff;
+      }
     </style>
   </head>
   <!-- firebase -->
@@ -199,11 +220,12 @@
   <body>
     <!-- SIDEBAR -->
     <div class="sidebar">
+      <img src="img/CTU_logo.png" class="logo" />
       <h2>NHÀ YẾN</h2>
       <a href="#" onclick="showPage('home')">Trang chủ</a>
       <a href="#" onclick="showPage('connect')">Kết nối</a>
       <a href="#" onclick="showPage('stats')">Thống kê</a>
-      <a href="#" onclick="showPage('export')">Hotline</a>
+      <a href="#" onclick="showPage('export')">Hỗ trợ</a>
     </div>
     <!-- MAIN -->
     <div class="main">
@@ -309,13 +331,15 @@
 
       <!--Hỗ trợ -->
       <div id="export" class="page card" style="display: none">
-        <h2>Hỗ trợ xin liên hệ 03xxxx3633</h2>
+        <button class="support-btn" onclick="sendEmail()">
+          📧 Gửi hỗ trợ qua Email
+        </button>
       </div>
     </div>
-<!-- biểu đồ đường & cột -->
+    <!-- biểu đồ đường & cột -->
     <script>
       let lineChart;
-      function createChart(hours, dataIn, dataOut) {
+      function drawChart(hours, vao, ra) {
         const ctx = document.getElementById("lineChart");
 
         if (lineChart) {
@@ -324,34 +348,35 @@
 
         lineChart = new Chart(ctx, {
           type: "line",
+
           data: {
             labels: hours,
             datasets: [
               {
                 label: "Chim vào",
-                data: dataIn,
+                data: vao,
                 borderColor: "#00d4ff",
                 backgroundColor: "rgba(0,212,255,0.15)",
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: "#00d4ff",
                 pointRadius: 4,
               },
               {
                 label: "Chim ra",
-                data: dataOut,
-                borderColor: "#ff6b6b",
-                backgroundColor: "rgba(255,107,107,0.15)",
+                data: ra,
+                borderColor: "#ff4444",
+                backgroundColor: "rgba(255,68,68,0.15)",
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: "#ff6b6b",
                 pointRadius: 4,
               },
             ],
           },
+
           options: {
             responsive: true,
             maintainAspectRatio: false,
+
             plugins: {
               legend: {
                 labels: {
@@ -359,21 +384,37 @@
                 },
               },
             },
+
             scales: {
               x: {
+                grid: {
+                  color: "rgba(255,255,255,0.05)", // lưới dọc nhẹ
+                  drawBorder: false,
+                },
+                ticks: {
+                  color: "#94a3b8",
+                },
                 title: {
                   display: true,
-                  text: "Thời gian (Giờ)",
+                  text: "Thời gian (giờ)",
                   font: { size: 15, weight: "bold" },
                 },
               },
+
               y: {
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(255,255,255,0.08)", // lưới ngang nhẹ hơn
+                  drawBorder: false,
+                },
+                ticks: {
+                  color: "#94a3b8",
+                },
                 title: {
                   display: true,
                   text: "Số lượng chim",
                   font: { size: 15, weight: "bold" },
                 },
-                beginAtZero: true,
               },
             },
           },
@@ -424,10 +465,6 @@
             ],
           },
 
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-          },
           options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -500,36 +537,35 @@
 <!-- thống kê -->
 <script>
   function loadStats() {
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
 
-  const table = document.getElementById("statsTable");
-  table.innerHTML = "";
+    const table = document.getElementById("statsTable");
+    table.innerHTML = "";
 
-  if (!fromDate || !toDate) {
-    alert("Vui lòng chọn ngày!");
-    return;
-  }
+    if (!fromDate || !toDate) {
+      alert("Vui lòng chọn ngày!");
+      return;
+    }
 
-  let currentTotal = 0;
+    let currentTotal = 0;
 
-  db.ref("bird_data").once("value").then((snapshot) => {
-    const data = snapshot.val();
+    db.ref("bird_data")
+      .once("value")
+      .then((snapshot) => {
+        const data = snapshot.val();
 
-    for (let date in data) {
+        for (let date in data) {
+          if (date >= fromDate && date <= toDate) {
+            const hours = data[date];
 
-      if (date >= fromDate && date <= toDate) {
+            for (let hour in hours) {
+              const vao = hours[hour].vao || 0;
+              const ra = hours[hour].ra || 0;
 
-        const hours = data[date];
+              currentTotal += vao - ra;
 
-        for (let hour in hours) {
-
-          const vao = hours[hour].vao || 0;
-          const ra = hours[hour].ra || 0;
-
-          currentTotal += vao - ra;
-
-          table.innerHTML += `
+              table.innerHTML += `
           <tr>
             <td>${formatDateVN(date)}</td>
             <td>${hour}:00</td>
@@ -538,11 +574,11 @@
             <td>${currentTotal}</td>
           </tr>
           `;
+            }
+          }
         }
-      }
-    }
-  });
-}
+      });
+  }
 </script>
 <!-- xuất file -->
 <script>
@@ -558,75 +594,36 @@
 <!-- lấy dữ liệu từ firebase cho thống kê theo ngày -->
 <script>
   function loadChart() {
+    let today = new Date().toISOString().split("T")[0];
 
-  let today = new Date().toISOString().split("T")[0];
+    const hours = [];
+    const vao = new Array(15).fill(0);
+    const ra = new Array(15).fill(0);
 
-  const hours = [];
-  const vao = new Array(15).fill(0);
-  const ra = new Array(15).fill(0);
+    let loaded = 0;
 
-  let loaded = 0;
+    for (let h = 5; h <= 19; h++) {
+      let hour = h.toString().padStart(2, "0");
+      let index = h - 5; // vị trí trong mảng
 
-  for (let h = 5; h <= 19; h++) {
+      hours[index] = hour + ":00";
 
-    let hour = h.toString().padStart(2, "0");
-    let index = h - 5; // vị trí trong mảng
+      db.ref("bird_data/" + today + "/" + hour)
+        .once("value")
+        .then((snapshot) => {
+          let data = snapshot.val() || {};
 
-    hours[index] = hour + ":00";
+          vao[index] = data.vao || 0;
+          ra[index] = data.ra || 0;
 
-    db.ref("bird_data/" + today + "/" + hour)
-      .once("value")
-      .then((snapshot) => {
+          loaded++;
 
-        let data = snapshot.val() || {};
-
-        vao[index] = data.vao || 0;
-        ra[index] = data.ra || 0;
-
-        loaded++;
-
-        if (loaded === 15) {
-          drawChart(hours, vao, ra);
-        }
-
-      });
+          if (loaded === 15) {
+            drawChart(hours, vao, ra);
+          }
+        });
+    }
   }
-}
-
-  function drawChart(hours, vao, ra) {
-    new Chart(document.getElementById("lineChart"), {
-      type: "line",
-
-      data: {
-        labels: hours,
-        datasets: [
-          {
-            label: "Chim vào",
-            data: vao,
-            borderColor: "#00d4ff",
-            backgroundColor: "rgba(0,212,255,0.15)",
-            tension: 0.4,
-            fill: true,
-          },
-
-          {
-            label: "Chim ra",
-            data: ra,
-            borderColor: "#ff4444",
-            backgroundColor: "rgba(255,68,68,0.15)",
-            tension: 0.4,
-            fill: true,
-          },
-        ],
-      },
-
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-    });
-  }
-
   loadChart();
 </script>
 <!-- lấy dữ liệu từ firebase cho thống kê theo tháng -->
@@ -666,8 +663,26 @@
 </script>
 <!-- đổi năm-tháng-ngày thành ngày-tháng-năm -->
 <script>
-function formatDateVN(dateStr) {
-  const [year, month, day] = dateStr.split("-");
-  return `${day}/${month}/${year}`;
-}
-</script> 
+  function formatDateVN(dateStr) {
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  }
+</script>
+<!-- hỗ trợ -->
+<script>
+  function sendEmail() {
+    let now = new Date().toLocaleString();
+
+    let body =
+      "Mô tả lời:\n\n\n" +
+      "----------------------\n" +
+      "Thời gian: " +
+      now +
+      "\n" +
+      "Hệ thống: Nhà Yến IoT";
+
+    window.location.href =
+      "mailto:khangb2204563@stuent.ctu.edu.vn,duyb2204543@stuent.ctu.edu.vn?subject=Hỗ trợ hệ thống&body=" +
+      encodeURIComponent(body);
+  }
+</script>
