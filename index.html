@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard Nhà Yến</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        display: flex;
+      }
+
+      /* ===== SIDEBAR ===== */
+      .sidebar {
+        width: 150px;
+        background: linear-gradient(180deg, #111c33, #0d1424);
+        min-height: 100vh;
+        padding: 20px 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.6);
+      }
+
+      .sidebar h2 {
+        color: #00d4ff;
+        margin-bottom: 20px;
+      }
+
+      .sidebar a {
+        color: #94a3b8;
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 8px;
+        transition: 0.3s;
+      }
+
+      .sidebar a:hover {
+        background: #1e293b;
+        color: #00d4ff;
+      }
+
+      /* ===== MAIN ===== */
+      .main {
+        flex: 1;
+        padding: 20px;
+      }
+
+      .row {
+        display: flex;
+        gap: 20px;
+      }
+
+      .card {
+        background: #1e293b;
+        border-radius: 12px;
+        padding: 15px;
+        position: relative; /* QUAN TRỌNG */
+      }
+
+      .card h4 {
+        margin: 0;
+        font-size: 15px;
+        color: #94a3b8;
+      }
+      .card h3 {
+        margin: 20px 0 0 30px;
+        font-size: 18px;
+        color: #3ccd90;
+      }
+      .card h2 {
+        margin: 20px 0 0 30px;
+        font-size: 18px;
+        color: #3ccd90;
+      }
+
+      .big-number {
+        font-size: 26px;
+        font-weight: bold;
+        color: #00d4ff;
+        margin-top: 10px;
+      }
+
+      .speed {
+        position: absolute;
+        bottom: 25px; /* nằm mép dưới */
+        right: 20px; /* góc phải */
+        font-size: 20px;
+        color: #00d4ff;
+      }
+      .small {
+        width: 200px;
+        height: 70px;
+      }
+      /* ===== LINE CHART BOX ===== */
+      .chart-box {
+        height: 200px;
+        flex: 1;
+        background: transparent;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: none;
+        border: none;
+      }
+
+      /* ===== BAR CHART (NO BACKGROUND) ===== */
+      .chart-box.month-only {
+        margin: 60px 0 0 20px;
+        margin-right: 20px;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        height: 250px;
+      }
+
+      canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .mt15 {
+        margin-top: 15px;
+      }
+
+      .mt30 {
+        margin-top: 30px;
+      }
+      .export-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .export-btn {
+        padding: 10px 24px;
+        background-color: #2e7d32;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 15px;
+        transition: 0.3s;
+      }
+
+      .export-btn:hover {
+        background-color: #1b5e20;
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <!-- firebase -->
+  <script>
+    const firebaseConfig = {
+      databaseURL:
+        "https://radar-swiftlet-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // đọc chim vào
+    const chimVaoRef = db.ref("tong_vao");
+
+    chimVaoRef.on("value", (snapshot) => {
+      const value = snapshot.val() || 0;
+      document.querySelectorAll(".big-number")[0].innerText = value;
+    });
+    // đọc chim ra
+    const chimRaRef = db.ref("tong_ra");
+
+    chimRaRef.on("value", (snapshot) => {
+      const value = snapshot.val() || 0;
+      document.querySelectorAll(".big-number")[1].innerText = value;
+    });
+
+    // tính tổng trong nhà
+    db.ref("/").on("value", (snapshot) => {
+      const data = snapshot.val() || {};
+
+      const vao = data.tong_vao || 0;
+      const ra = data.tong_ra || 0;
+
+      const tong = vao - ra;
+
+      document.querySelectorAll(".big-number")[2].innerText = tong;
+    });
+  </script>
+
+  <body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <h2>NHÀ YẾN</h2>
+      <a href="#" onclick="showPage('home')">Trang chủ</a>
+      <a href="#" onclick="showPage('connect')">Kết nối</a>
+      <a href="#" onclick="showPage('stats')">Thống kê</a>
+      <a href="#" onclick="showPage('export')">Hotline</a>
+    </div>
+    <!-- MAIN -->
+    <div class="main">
+      <!-- TRANG CHỦ -->
+      <div id="home" class="page">
+        <div>
+          <div class="row">
+            <div class="card small mt15">
+              <h4>Chim Vào</h4>
+              <div class="big-number">0</div>
+              <div class="speed">0 m/s</div>
+            </div>
+
+            <div class="card small mt15">
+              <h4>Chim Ra</h4>
+              <div class="big-number">0</div>
+              <div class="speed">0 m/s</div>
+            </div>
+
+            <div class="card small mt15">
+              <h4>Tổng Trong Nhà</h4>
+              <div class="big-number">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LINE CHART -->
+        <div class="chart-box card mt15">
+          <h3>Thống kê theo ngày</h3>
+          <canvas id="lineChart"></canvas>
+        </div>
+
+        <!-- BAR CHART -->
+        <div class="chart-box card month-only mt30">
+          <h3>Thống kê theo tháng</h3>
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- KẾT NỐI -->
+      <div id="connect" class="page" style="display: none">
+        <h2>Kết nối thiết bị</h2>
+      </div>
+
+      <!-- THỐNG KÊ -->
+      <div id="stats" class="page" style="display: none; padding: 20px">
+        <!-- BỘ LỌC -->
+        <div
+          style="
+            background: #2c384c;
+            padding: 20px;
+            border-radius: 20px;
+            width: 290px;
+          "
+        >
+          <input type="date" id="fromDate" />
+          <input type="date" id="toDate" />
+          <button onclick="loadStats()">Xem</button>
+        </div>
+
+        <!-- BẢNG DỮ LIỆU -->
+        <div style="margin-top: 30px">
+          <div
+            style="
+              max-height: 500px;
+              overflow-y: auto;
+              border-radius: 10px;
+              border: 1px solid #1f3d44;
+            "
+          >
+            <table
+              width="100%"
+              style="border-collapse: collapse; text-align: center"
+            >
+              <thead
+                style="
+                  background: #1e293b;
+                  position: sticky;
+                  top: 0;
+                  z-index: 1;
+                "
+              >
+                <tr>
+                  <th>Ngày-tháng-năm</th>
+                  <th>Giờ</th>
+                  <th>Chim vào</th>
+                  <th>Chim ra</th>
+                  <th>Tổng đàn trong nhà</th>
+                </tr>
+              </thead>
+
+              <tbody id="statsTable"></tbody>
+            </table>
+          </div>
+          <!-- NÚT XUẤT FILE (NẰM NGOÀI TABLE) -->
+          <div class="export-wrapper">
+            <button onclick="exportToExcel()" class="export-btn">
+              Xuất file Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!--Hỗ trợ -->
+      <div id="export" class="page card" style="display: none">
+        <h2>Hỗ trợ xin liên hệ 03xxxx3633</h2>
+      </div>
+    </div>
+<!-- biểu đồ đường & cột -->
+    <script>
+      let lineChart;
+      function createChart(hours, dataIn, dataOut) {
+        const ctx = document.getElementById("lineChart");
+
+        if (lineChart) {
+          lineChart.destroy();
+        }
+
+        lineChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: hours,
+            datasets: [
+              {
+                label: "Chim vào",
+                data: dataIn,
+                borderColor: "#00d4ff",
+                backgroundColor: "rgba(0,212,255,0.15)",
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: "#00d4ff",
+                pointRadius: 4,
+              },
+              {
+                label: "Chim ra",
+                data: dataOut,
+                borderColor: "#ff6b6b",
+                backgroundColor: "rgba(255,107,107,0.15)",
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: "#ff6b6b",
+                pointRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#e2e8f0",
+                },
+              },
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Thời gian (Giờ)",
+                  font: { size: 15, weight: "bold" },
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Số lượng chim",
+                  font: { size: 15, weight: "bold" },
+                },
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      function drawMonthChart(vao, ra, tong) {
+        new Chart(document.getElementById("barChart"), {
+          type: "bar",
+
+          data: {
+            labels: [
+              "T1",
+              "T2",
+              "T3",
+              "T4",
+              "T5",
+              "T6",
+              "T7",
+              "T8",
+              "T9",
+              "T10",
+              "T11",
+              "T12",
+            ],
+
+            datasets: [
+              {
+                label: "Chim vào",
+                data: vao,
+                backgroundColor: "rgba(0,200,0,0.7)",
+                borderRadius: 6,
+              },
+
+              {
+                label: "Chim ra",
+                data: ra,
+                backgroundColor: "rgba(255,0,0,0.7)",
+                borderRadius: 6,
+              },
+
+              {
+                label: "Tổng",
+                data: tong,
+                backgroundColor: "rgba(255,200,0,0.8)",
+                borderRadius: 6,
+              },
+            ],
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#e2e8f0",
+                },
+              },
+            },
+
+            scales: {
+              x: {
+                grid: {
+                  color: "rgba(255,255,255,0.05)", // lưới dọc nhẹ
+                  drawBorder: false,
+                },
+                ticks: {
+                  color: "#94a3b8",
+                },
+                title: {
+                  display: true,
+                  text: "Tháng",
+                  font: { size: 15, weight: "bold" },
+                },
+              },
+
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(255,255,255,0.08)", // lưới ngang nhẹ hơn
+                  drawBorder: false,
+                },
+                ticks: {
+                  color: "#94a3b8",
+                },
+                title: {
+                  display: true,
+                  text: "Số lượng chim",
+                  font: { size: 15, weight: "bold" },
+                },
+              },
+            },
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<!-- chuyển tab -->
+<script>
+  function showPage(pageId) {
+    document.querySelectorAll(".page").forEach((p) => {
+      p.style.display = "none";
+    });
+
+    const activePage = document.getElementById(pageId);
+    activePage.style.display = "block";
+
+    // Chỉ resize nếu chart đã tồn tại
+    if (pageId === "stats" && statsChart) {
+      setTimeout(() => {
+        statsChart.resize();
+      }, 200);
+    }
+  }
+</script>
+<!-- thống kê -->
+<script>
+  function loadStats() {
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+
+  const table = document.getElementById("statsTable");
+  table.innerHTML = "";
+
+  if (!fromDate || !toDate) {
+    alert("Vui lòng chọn ngày!");
+    return;
+  }
+
+  let currentTotal = 0;
+
+  db.ref("bird_data").once("value").then((snapshot) => {
+    const data = snapshot.val();
+
+    for (let date in data) {
+
+      if (date >= fromDate && date <= toDate) {
+
+        const hours = data[date];
+
+        for (let hour in hours) {
+
+          const vao = hours[hour].vao || 0;
+          const ra = hours[hour].ra || 0;
+
+          currentTotal += vao - ra;
+
+          table.innerHTML += `
+          <tr>
+            <td>${formatDateVN(date)}</td>
+            <td>${hour}:00</td>
+            <td>${vao}</td>
+            <td>${ra}</td>
+            <td>${currentTotal}</td>
+          </tr>
+          `;
+        }
+      }
+    }
+  });
+}
+</script>
+<!-- xuất file -->
+<script>
+  function exportToExcel() {
+    const table = document.querySelector("table");
+    const workbook = XLSX.utils.table_to_book(table, {
+      sheet: "ThongKeNhaYen",
+    });
+
+    XLSX.writeFile(workbook, "ThongKeNhaYen.xlsx");
+  }
+</script>
+<!-- lấy dữ liệu từ firebase cho thống kê theo ngày -->
+<script>
+  function loadChart() {
+
+  let today = new Date().toISOString().split("T")[0];
+
+  const hours = [];
+  const vao = new Array(15).fill(0);
+  const ra = new Array(15).fill(0);
+
+  let loaded = 0;
+
+  for (let h = 5; h <= 19; h++) {
+
+    let hour = h.toString().padStart(2, "0");
+    let index = h - 5; // vị trí trong mảng
+
+    hours[index] = hour + ":00";
+
+    db.ref("bird_data/" + today + "/" + hour)
+      .once("value")
+      .then((snapshot) => {
+
+        let data = snapshot.val() || {};
+
+        vao[index] = data.vao || 0;
+        ra[index] = data.ra || 0;
+
+        loaded++;
+
+        if (loaded === 15) {
+          drawChart(hours, vao, ra);
+        }
+
+      });
+  }
+}
+
+  function drawChart(hours, vao, ra) {
+    new Chart(document.getElementById("lineChart"), {
+      type: "line",
+
+      data: {
+        labels: hours,
+        datasets: [
+          {
+            label: "Chim vào",
+            data: vao,
+            borderColor: "#00d4ff",
+            backgroundColor: "rgba(0,212,255,0.15)",
+            tension: 0.4,
+            fill: true,
+          },
+
+          {
+            label: "Chim ra",
+            data: ra,
+            borderColor: "#ff4444",
+            backgroundColor: "rgba(255,68,68,0.15)",
+            tension: 0.4,
+            fill: true,
+          },
+        ],
+      },
+
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    });
+  }
+
+  loadChart();
+</script>
+<!-- lấy dữ liệu từ firebase cho thống kê theo tháng -->
+<script>
+  function loadMonthChart() {
+    const vaoMonth = new Array(12).fill(0);
+    const raMonth = new Array(12).fill(0);
+    const tongMonth = new Array(12).fill(0);
+
+    db.ref("bird_data")
+      .once("value")
+      .then((snapshot) => {
+        const data = snapshot.val();
+
+        for (let date in data) {
+          const month = new Date(date).getMonth(); // 0-11
+          const hours = data[date];
+
+          for (let hour in hours) {
+            const vao = hours[hour].vao || 0;
+            const ra = hours[hour].ra || 0;
+
+            vaoMonth[month] += vao;
+            raMonth[month] += ra;
+          }
+        }
+
+        for (let i = 0; i < 12; i++) {
+          tongMonth[i] = vaoMonth[i] - raMonth[i];
+        }
+
+        drawMonthChart(vaoMonth, raMonth, tongMonth);
+      });
+  }
+
+  loadMonthChart();
+</script>
+<!-- đổi năm-tháng-ngày thành ngày-tháng-năm -->
+<script>
+function formatDateVN(dateStr) {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+}
+</script> 
