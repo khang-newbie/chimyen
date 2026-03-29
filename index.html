@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
         margin: 0;
@@ -162,6 +162,7 @@
         display: block;
         margin: 0 auto 2px;
       }
+      /* hỗ trợ và giới thiệu */
       .support-btn {
         background: linear-gradient(135deg, #00d4ff, #007bff);
         color: white;
@@ -197,6 +198,97 @@
 
       .about-box ul {
         padding-left: 20px;
+      }
+      /* kết nối */
+      .connect-grid {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .connect-card {
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 15px;
+        width: 280px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      }
+
+      .connect-card h3 {
+        margin-bottom: 15px;
+        color: #00d4ff;
+      }
+
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .status {
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-weight: bold;
+      }
+
+      .status.online {
+        background: #16a34a;
+        color: white;
+      }
+
+      .status.offline {
+        background: #dc2626;
+        color: white;
+      }
+
+      /* SLIDER */
+      input[type="range"] {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .slider-value {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+
+      /* BUTTON */
+      .btn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        background: #00d4ff;
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .btn:hover {
+        transform: scale(1.05);
+      }
+
+      .btn.gray {
+        background: #64748b;
+        color: white;
+      }
+
+      .btn.danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-save {
+        margin-top: 10px;
+        width: 100%;
+        padding: 10px;
+        background: #22c55e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
       }
     </style>
   </head>
@@ -289,7 +381,59 @@
 
       <!-- KẾT NỐI -->
       <div id="connect" class="page" style="display: none">
-        <h2>Kết nối thiết bị</h2>
+        <h2 style="margin-bottom: 20px">Kết nối thiết bị</h2>
+
+        <div class="connect-grid">
+          <!-- STATUS -->
+          <div class="connect-card">
+            <h3>Trạng thái hệ thống</h3>
+            <div class="status-row">
+              <span>ESP32:</span>
+              <span id="espStatus" class="status offline">Offline</span>
+            </div>
+
+            <div class="status-row">
+              <span>Radar:</span>
+              <span id="radarStatus" class="status offline">Offline</span>
+            </div>
+          </div>
+
+          <!-- THRESHOLD -->
+          <div class="connect-card">
+            <h3>Ngưỡng phát hiện</h3>
+
+            <input
+              type="range"
+              id="thresholdSlider"
+              min="10"
+              max="100"
+              value="25"
+              oninput="updateThresholdValue(this.value)"
+            />
+
+            <div class="slider-value">
+              Ngưỡng: <span id="thresholdValue">25</span>
+            </div>
+
+            <button class="btn-save" onclick="saveThreshold()">Lưu</button>
+          </div>
+
+          <!-- CONTROL -->
+          <div class="connect-card">
+            <h3>Điều khiển</h3>
+
+            <button class="btn danger" onclick="resetCounter()">
+              Reset dữ liệu
+            </button>
+
+            <button class="btn" onclick="toggleSystem(true)">
+              Bật hệ thống
+            </button>
+            <button class="btn gray" onclick="toggleSystem(false)">
+              Tắt hệ thống
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- THỐNG KÊ -->
@@ -761,4 +905,44 @@
       "mailto:khangb2204563@stuent.ctu.edu.vn,duyb2204543@stuent.ctu.edu.vn?subject=Hỗ trợ hệ thống&body=" +
       encodeURIComponent(body);
   }
+</script>
+<!-- kết nối -->
+<script>
+  //Slider + lưu Firebase
+  function updateThresholdValue(val) {
+    document.getElementById("thresholdValue").innerText = val;
+  }
+
+  function saveThreshold() {
+    const value = document.getElementById("thresholdSlider").value;
+    db.ref("config/threshold").set(parseInt(value));
+  }
+  //Reset dữ liệu
+  function resetCounter() {
+    db.ref("tong_vao").set(0);
+    db.ref("tong_ra").set(0);
+    alert("Đã reset!");
+  }
+  //Bật tắt hệ thống
+  function toggleSystem(state) {
+    db.ref("config/enabled").set(state);
+  }
+  //Trạng thái ONLINE/OFFLINE
+  db.ref("status").on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+
+    document.getElementById("espStatus").className =
+      "status " + (data.esp ? "online" : "offline");
+
+    document.getElementById("espStatus").innerText = data.esp
+      ? "Online"
+      : "Offline";
+
+    document.getElementById("radarStatus").className =
+      "status " + (data.radar ? "online" : "offline");
+
+    document.getElementById("radarStatus").innerText = data.radar
+      ? "Online"
+      : "Offline";
+  });
 </script>
