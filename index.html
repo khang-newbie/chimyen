@@ -7,7 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
     <style>
       body {
         margin: 0;
@@ -945,4 +948,10 @@
       ? "Online"
       : "Offline";
   });
+</script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
 </script>
