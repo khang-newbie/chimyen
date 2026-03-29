@@ -294,7 +294,7 @@
         font-weight: bold;
       }
       /* ================= MOBILE ================= */
-    
+
       @media (max-width: 768px) {
         body {
           flex-direction: column;
@@ -340,13 +340,13 @@
         .row {
           display: flex;
           flex-direction: row;
-          justify-content: space-between;
           gap: 8px;
-          flex-wrap: nowrap; /* QUAN TRỌNG */
+          flex-wrap: nowrap;
         }
 
         .small {
-          width: 32%;
+          flex: 1; /* tự chia đều */
+          min-width: 0; /* tránh tràn */
           height: 70px;
           padding: 8px;
         }
