@@ -18,9 +18,7 @@
         background: #0f172a;
         color: #e2e8f0;
         display: flex;
-      }
-
-      /* ===== SIDEBAR ===== */
+      } /* ===== SIDEBAR ===== */
       .sidebar {
         width: 150px;
         background: linear-gradient(180deg, #111c33, #0d1424);
@@ -31,12 +29,10 @@
         gap: 10px;
         box-shadow: 2px 0 15px rgba(0, 0, 0, 0.6);
       }
-
       .sidebar h2 {
         color: #00d4ff;
         margin-bottom: 10px;
       }
-
       .sidebar a {
         color: #94a3b8;
         text-decoration: none;
@@ -44,30 +40,24 @@
         border-radius: 8px;
         transition: 0.3s;
       }
-
       .sidebar a:hover {
         background: #1e293b;
         color: #00d4ff;
-      }
-
-      /* ===== MAIN ===== */
+      } /* ===== MAIN ===== */
       .main {
         flex: 1;
         padding: 20px;
       }
-
       .row {
         display: flex;
         gap: 20px;
       }
-
       .card {
         background: #1e293b;
         border-radius: 12px;
         padding: 15px;
         position: relative; /* QUAN TRỌNG */
       }
-
       .card h4 {
         margin: 0;
         font-size: 15px;
@@ -83,14 +73,12 @@
         font-size: 18px;
         color: #3ccd90;
       }
-
       .big-number {
         font-size: 26px;
         font-weight: bold;
         color: #00d4ff;
         margin-top: 10px;
       }
-
       .speed {
         position: absolute;
         bottom: 25px; /* nằm mép dưới */
@@ -101,8 +89,7 @@
       .small {
         width: 200px;
         height: 70px;
-      }
-      /* ===== LINE CHART BOX ===== */
+      } /* ===== LINE CHART BOX ===== */
       .chart-box {
         height: 200px;
         flex: 1;
@@ -111,9 +98,7 @@
         padding: 20px;
         box-shadow: none;
         border: none;
-      }
-
-      /* ===== BAR CHART (NO BACKGROUND) ===== */
+      } /* ===== BAR CHART (NO BACKGROUND) ===== */
       .chart-box.month-only {
         margin: 60px 0 0 20px;
         margin-right: 20px;
@@ -123,16 +108,13 @@
         padding: 0;
         height: 250px;
       }
-
       canvas {
         width: 100% !important;
         height: 100% !important;
       }
-
       .mt15 {
         margin-top: 15px;
       }
-
       .mt30 {
         margin-top: 30px;
       }
@@ -142,7 +124,6 @@
         justify-content: center;
         margin-top: 20px;
       }
-
       .export-btn {
         padding: 10px 24px;
         background-color: #2e7d32;
@@ -154,7 +135,6 @@
         font-size: 15px;
         transition: 0.3s;
       }
-
       .export-btn:hover {
         background-color: #1b5e20;
         transform: scale(1.05);
@@ -164,8 +144,7 @@
         height: auto;
         display: block;
         margin: 0 auto 2px;
-      }
-      /* hỗ trợ và giới thiệu */
+      } /* hỗ trợ và giới thiệu */
       .support-btn {
         background: linear-gradient(135deg, #00d4ff, #007bff);
         color: white;
@@ -176,7 +155,6 @@
         font-size: 14px;
         transition: 0.3s;
       }
-
       .support-btn:hover {
         transform: scale(1.05);
         box-shadow: 0 0 10px #00d4ff;
@@ -188,27 +166,22 @@
         color: #e2e8f0;
         line-height: 1.6;
       }
-
       .about-box h2 {
         color: #00d4ff;
         margin-bottom: 10px;
       }
-
       .about-box h3 {
         margin-top: 15px;
         color: #38bdf8;
       }
-
       .about-box ul {
         padding-left: 20px;
-      }
-      /* kết nối */
+      } /* kết nối */
       .connect-grid {
         display: flex;
         gap: 20px;
         flex-wrap: wrap;
       }
-
       .connect-card {
         background: #1e293b;
         padding: 20px;
@@ -216,46 +189,36 @@
         width: 280px;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
       }
-
       .connect-card h3 {
         margin-bottom: 15px;
         color: #00d4ff;
       }
-
       .status-row {
         display: flex;
         justify-content: space-between;
         margin-bottom: 10px;
       }
-
       .status {
         padding: 5px 10px;
         border-radius: 8px;
         font-weight: bold;
       }
-
       .status.online {
         background: #16a34a;
         color: white;
       }
-
       .status.offline {
         background: #dc2626;
         color: white;
-      }
-
-      /* SLIDER */
+      } /* SLIDER */
       input[type="range"] {
         width: 100%;
         margin-top: 10px;
       }
-
       .slider-value {
         margin-top: 10px;
         font-size: 16px;
-      }
-
-      /* BUTTON */
+      } /* BUTTON */
       .btn {
         width: 100%;
         margin-top: 10px;
@@ -268,21 +231,17 @@
         cursor: pointer;
         transition: 0.2s;
       }
-
       .btn:hover {
         transform: scale(1.05);
       }
-
       .btn.gray {
         background: #64748b;
         color: white;
       }
-
       .btn.danger {
         background: #ef4444;
         color: white;
       }
-
       .btn-save {
         margin-top: 10px;
         width: 100%;
@@ -294,75 +253,58 @@
         font-weight: bold;
       }
       /* ================= MOBILE ================= */
-
       @media (max-width: 768px) {
         body {
           flex-direction: column;
         }
 
-        /* ===== MENU DƯỚI ===== */
+        /* SIDEBAR thành top bar */
         .sidebar {
-          position: fixed;
-          bottom: 0;
-          left: 0;
           width: 100%;
-          height: 60px;
-          background: #111c33;
-          display: flex;
+          min-height: auto;
           flex-direction: row;
           justify-content: space-around;
           align-items: center;
-          padding: 5px 0;
-          z-index: 999;
-          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+          padding: 10px;
+          gap: 5px;
         }
 
         .sidebar h2 {
-          display: none;
+          display: none; /* ẩn chữ NHÀ YẾN cho gọn */
         }
 
         .sidebar a {
           font-size: 12px;
-          text-align: center;
-          padding: 5px;
+          padding: 6px;
         }
 
         .logo {
-          display: none;
+          width: 40px;
         }
 
+        /* MAIN */
         .main {
           padding: 10px;
-          padding-bottom: 70px;
         }
 
-        /* ===== FIX 3 CARD NẰM NGANG ===== */
+        /* CARD */
         .row {
-          display: flex;
-          flex-direction: row;
-          gap: 8px;
-          flex-wrap: nowrap;
+          flex-wrap: wrap;
+          gap: 10px;
         }
 
         .small {
-          flex: 1; /* tự chia đều */
-          min-width: 0; /* tránh tràn */
-          height: 70px;
-          padding: 8px;
-        }
-
-        .card h4 {
-          font-size: 12px;
+          width: 100%;
+          height: auto;
         }
 
         .big-number {
-          font-size: 18px;
+          font-size: 22px;
         }
 
         .speed {
-          font-size: 12px;
-          bottom: 8px;
-          right: 8px;
+          font-size: 14px;
+          bottom: 10px;
         }
 
         /* CHART */
