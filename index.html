@@ -293,6 +293,91 @@
         color: white;
         font-weight: bold;
       }
+      /* ================= MOBILE ================= */
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+
+        /* SIDEBAR thành top bar */
+        .sidebar {
+          width: 100%;
+          min-height: auto;
+          flex-direction: row;
+          justify-content: space-around;
+          align-items: center;
+          padding: 10px;
+          gap: 5px;
+        }
+
+        .sidebar h2 {
+          display: none; /* ẩn chữ NHÀ YẾN cho gọn */
+        }
+
+        .sidebar a {
+          font-size: 12px;
+          padding: 6px;
+        }
+
+        .logo {
+          width: 40px;
+        }
+
+        /* MAIN */
+        .main {
+          padding: 10px;
+        }
+
+        /* CARD */
+        .row {
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .small {
+          width: 100%;
+          height: auto;
+        }
+
+        .big-number {
+          font-size: 22px;
+        }
+
+        .speed {
+          font-size: 14px;
+          bottom: 10px;
+        }
+
+        /* CHART */
+        .chart-box {
+          height: 220px;
+          padding: 10px;
+        }
+
+        .chart-box.month-only {
+          margin: 20px 0;
+          height: 220px;
+        }
+
+        /* CONNECT */
+        .connect-grid {
+          flex-direction: column;
+        }
+
+        .connect-card {
+          width: 100%;
+        }
+
+        /* TABLE */
+        table {
+          font-size: 12px;
+        }
+
+        th,
+        td {
+          padding: 5px;
+        }
+      }
     </style>
   </head>
   <!-- firebase -->
