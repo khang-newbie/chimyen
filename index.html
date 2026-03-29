@@ -258,64 +258,84 @@
           flex-direction: column;
         }
 
-        /* SIDEBAR thành top bar */
+        /* ẨN LOGO */
+        .logo {
+          display: none;
+        }
+
+        /* ===== MENU DƯỚI ===== */
         .sidebar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
           width: 100%;
-          min-height: auto;
+          height: 60px;
           flex-direction: row;
           justify-content: space-around;
           align-items: center;
-          padding: 10px;
-          gap: 5px;
+          padding: 5px 0;
+          z-index: 999;
         }
 
         .sidebar h2 {
-          display: none; /* ẩn chữ NHÀ YẾN cho gọn */
+          display: none;
+        }
+
+        /* ❌ ẨN ICON/ẢNH TRONG TAB */
+        .sidebar img {
+          display: none;
         }
 
         .sidebar a {
           font-size: 12px;
-          padding: 6px;
-        }
-
-        .logo {
-          width: 40px;
+          text-align: center;
+          padding: 5px;
         }
 
         /* MAIN */
         .main {
           padding: 10px;
+          padding-bottom: 70px;
         }
 
-        /* CARD */
+        /* ===== 3 CARD NẰM NGANG ===== */
         .row {
-          flex-wrap: wrap;
-          gap: 10px;
+          display: flex;
+          flex-direction: row;
+          gap: 8px;
+          flex-wrap: nowrap;
         }
 
         .small {
-          width: 100%;
-          height: auto;
+          flex: 1;
+          min-width: 0;
+          height: 65px;
+          padding: 8px;
+        }
+
+        .card h4 {
+          font-size: 12px;
         }
 
         .big-number {
-          font-size: 22px;
+          font-size: 18px;
         }
 
         .speed {
-          font-size: 14px;
-          bottom: 10px;
+          font-size: 12px;
+          bottom: 8px;
+          right: 8px;
         }
 
         /* CHART */
         .chart-box {
-          height: 220px;
+          height: 200px;
           padding: 10px;
         }
 
         .chart-box.month-only {
           margin: 20px 0;
-          height: 220px;
+          height: 200px;
         }
 
         /* CONNECT */
