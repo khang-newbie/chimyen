@@ -252,6 +252,17 @@
         color: white;
         font-weight: bold;
       }
+      .undo-box {
+        background: #111c33;
+        border: 1px solid #334155;
+        padding: 12px;
+        border-radius: 12px;
+        margin-top: 15px;
+      }
+      .undo-box p {
+        margin: 0 0 10px 0;
+        color: #cbd5e1;
+      }
       /* ================= MOBILE ================= */
       @media (max-width: 768px) {
         body {
@@ -466,9 +477,168 @@
           <div class="connect-card">
             <h3>Điều khiển</h3>
 
-            <button class="btn danger" onclick="resetCounter()">
+            <button class="btn danger" onclick="showResetPanel()">
               Reset dữ liệu
             </button>
+
+            <div style="margin-top: 10px">
+              <div id="resetPanel" style="display: none; margin-top: 8px">
+                <button
+                  class="btn"
+                  onclick="showDayResetPanel()"
+                  style="
+                    width: 100%;
+                    margin-bottom: 8px;
+                    background: #f59e0b;
+                    color: white;
+                    border: none;
+                  "
+                >
+                  Reset ngày
+                </button>
+                <button
+                  class="btn"
+                  onclick="showMonthResetPanel()"
+                  style="
+                    width: 100%;
+                    margin-bottom: 8px;
+                    background: #7c3aed;
+                    color: white;
+                    border: none;
+                  "
+                >
+                  Reset tháng
+                </button>
+
+                <div id="dayResetPanel" style="display: none; margin-top: 8px">
+                  <label
+                    style="
+                      display: block;
+                      margin-bottom: 8px;
+                      font-size: 14px;
+                      color: #94a3b8;
+                    "
+                    >Chọn ngày để reset</label
+                  >
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px">
+                    <select
+                      id="resetDayDay"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                    <select
+                      id="resetDayMonth"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                    <select
+                      id="resetDayYear"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                  </div>
+                  <button
+                    class="btn gray"
+                    onclick="confirmResetDay()"
+                    style="margin-top: 10px; width: 100%"
+                  >
+                    Xác nhận reset ngày
+                  </button>
+                </div>
+
+                <div
+                  id="monthResetPanel"
+                  style="display: none; margin-top: 8px"
+                >
+                  <label
+                    style="
+                      display: block;
+                      margin-bottom: 8px;
+                      font-size: 14px;
+                      color: #94a3b8;
+                    "
+                    >Chọn tháng để reset</label
+                  >
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px">
+                    <select
+                      id="resetMonthMonth"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    >
+                      <option value="01">01</option>
+                      <option value="02">02</option>
+                      <option value="03">03</option>
+                      <option value="04">04</option>
+                      <option value="05">05</option>
+                      <option value="06">06</option>
+                      <option value="07">07</option>
+                      <option value="08">08</option>
+                      <option value="09">09</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                    <select
+                      id="resetMonthYear"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                  </div>
+                  <button
+                    class="btn gray"
+                    onclick="confirmResetMonth()"
+                    style="margin-top: 10px; width: 100%"
+                  >
+                    Xác nhận reset tháng
+                  </button>
+                </div>
+
+                <div
+                  id="resetMessage"
+                  class="undo-box"
+                  style="display: none; margin-top: 10px"
+                >
+                  <p id="resetMessageText"></p>
+                  <button
+                    class="btn-save"
+                    onclick="undoReset()"
+                    id="undoResetBtn"
+                  >
+                    Khôi phục trong <span id="undoCountdown">10</span>s
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <button class="btn" onclick="toggleSystem(true)">
               Bật hệ thống
@@ -491,9 +661,104 @@
             width: 290px;
           "
         >
-          <input type="date" id="fromDate" />
-          <input type="date" id="toDate" />
-          <button onclick="loadStats()">Xem</button>
+          <div style="display: grid; gap: 10px">
+            <button class="btn" onclick="toggleStatsDatePanel()">
+              Chọn ngày xem
+            </button>
+            <div id="statsDatePanel" style="display: none; margin-top: 8px">
+              <div>
+                <div
+                  style="margin-bottom: 8px; font-size: 14px; color: #94a3b8"
+                >
+                  Từ ngày
+                </div>
+                <div style="display: flex; gap: 8px">
+                  <select
+                    id="fromDay"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="fromMonth"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="fromYear"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                </div>
+              </div>
+              <div style="margin-top: 8px">
+                <div
+                  style="margin-bottom: 8px; font-size: 14px; color: #94a3b8"
+                >
+                  Đến ngày
+                </div>
+                <div style="display: flex; gap: 8px">
+                  <select
+                    id="toDay"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="toMonth"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="toYear"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                </div>
+              </div>
+              <button
+                onclick="loadStats()"
+                class="btn gray"
+                style="margin-top: 8px"
+              >
+                Xem
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- BẢNG DỮ LIỆU -->
@@ -790,19 +1055,21 @@
     const activePage = document.getElementById(pageId);
     activePage.style.display = "block";
 
-    // Chỉ resize nếu chart đã tồn tại
-    if (pageId === "stats" && statsChart) {
-      setTimeout(() => {
-        statsChart.resize();
-      }, 200);
+    if (pageId === "stats") {
+      initStatsDateSelects();
+      if (statsChart) {
+        setTimeout(() => {
+          statsChart.resize();
+        }, 200);
+      }
     }
   }
 </script>
 <!-- thống kê -->
 <script>
   function loadStats() {
-    const fromDate = document.getElementById("fromDate").value;
-    const toDate = document.getElementById("toDate").value;
+    const fromDate = getStatsDate("from");
+    const toDate = getStatsDate("to");
 
     const table = document.getElementById("statsTable");
     table.innerHTML = "";
@@ -931,6 +1198,95 @@
     const [year, month, day] = dateStr.split("-");
     return `${day}/${month}/${year}`;
   }
+
+  function initStatsDateSelects() {
+    const fromDay = document.getElementById("fromDay");
+    const fromMonth = document.getElementById("fromMonth");
+    const fromYear = document.getElementById("fromYear");
+    const toDay = document.getElementById("toDay");
+    const toMonth = document.getElementById("toMonth");
+    const toYear = document.getElementById("toYear");
+    if (!fromDay || !fromMonth || !fromYear || !toDay || !toMonth || !toYear)
+      return;
+
+    const current = new Date();
+    const currentYear = current.getFullYear();
+    const monthOptions = Array.from({ length: 12 }, (_, i) =>
+      String(i + 1).padStart(2, "0"),
+    );
+
+    function populateYear(select) {
+      if (select.options.length > 0) return;
+      for (let offset = -3; offset <= 3; offset++) {
+        const year = currentYear + offset;
+        const option = document.createElement("option");
+        option.value = year.toString();
+        option.text = year.toString();
+        select.appendChild(option);
+      }
+    }
+
+    function populateMonth(select) {
+      if (select.options.length > 0) return;
+      monthOptions.forEach((m) => {
+        const option = document.createElement("option");
+        option.value = m;
+        option.text = m;
+        select.appendChild(option);
+      });
+    }
+
+    function populateDay(select, year, month) {
+      select.innerHTML = "";
+      const days = new Date(year, month, 0).getDate();
+      for (let d = 1; d <= days; d++) {
+        const option = document.createElement("option");
+        option.value = String(d).padStart(2, "0");
+        option.text = String(d).padStart(2, "0");
+        select.appendChild(option);
+      }
+    }
+
+    populateYear(fromYear);
+    populateYear(toYear);
+    populateMonth(fromMonth);
+    populateMonth(toMonth);
+
+    if (!fromYear.value) fromYear.value = currentYear;
+    if (!fromMonth.value)
+      fromMonth.value = String(current.getMonth() + 1).padStart(2, "0");
+    if (!toYear.value) toYear.value = currentYear;
+    if (!toMonth.value)
+      toMonth.value = String(current.getMonth() + 1).padStart(2, "0");
+
+    populateDay(fromDay, fromYear.value, fromMonth.value);
+    populateDay(toDay, toYear.value, toMonth.value);
+
+    fromYear.onchange = () =>
+      populateDay(fromDay, fromYear.value, fromMonth.value);
+    fromMonth.onchange = () =>
+      populateDay(fromDay, fromYear.value, fromMonth.value);
+    toYear.onchange = () => populateDay(toDay, toYear.value, toMonth.value);
+    toMonth.onchange = () => populateDay(toDay, toYear.value, toMonth.value);
+
+    if (!fromDay.value)
+      fromDay.value = String(current.getDate()).padStart(2, "0");
+    if (!toDay.value) toDay.value = String(current.getDate()).padStart(2, "0");
+  }
+
+  function toggleStatsDatePanel() {
+    const panel = document.getElementById("statsDatePanel");
+    if (!panel) return;
+    initStatsDateSelects();
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  }
+
+  function getStatsDate(prefix) {
+    const day = document.getElementById(`${prefix}Day`).value;
+    const month = document.getElementById(`${prefix}Month`).value;
+    const year = document.getElementById(`${prefix}Year`).value;
+    return day && month && year ? `${year}-${month}-${day}` : "";
+  }
 </script>
 <!-- hỗ trợ -->
 <script>
@@ -961,12 +1317,244 @@
     const value = document.getElementById("thresholdSlider").value;
     db.ref("config/threshold").set(parseInt(value));
   }
-  //Reset dữ liệu
+  // Reset dữ liệu (day/month) with undo
+  let lastDeletedData = null;
+  let deletedType = null; // 'day' or 'month'
+  let undoTimer = null;
+
   function resetCounter() {
     db.ref("tong_vao").set(0);
     db.ref("tong_ra").set(0);
-    alert("Đã reset!");
+    alert("Đã reset counters!");
   }
+
+  function showResetPanel() {
+    const panel = document.getElementById("resetPanel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  }
+
+  function initDaySelect() {
+    const daySel = document.getElementById("resetDayDay");
+    const monthSel = document.getElementById("resetDayMonth");
+    const yearSel = document.getElementById("resetDayYear");
+    if (!daySel || !monthSel || !yearSel) return;
+
+    // populate month
+    if (monthSel.options.length === 0) {
+      for (let m = 1; m <= 12; m++) {
+        const opt = document.createElement("option");
+        opt.value = String(m).padStart(2, "0");
+        opt.text = String(m).padStart(2, "0");
+        monthSel.appendChild(opt);
+      }
+    }
+
+    // populate year
+    if (yearSel.options.length === 0) {
+      const currentYear = new Date().getFullYear();
+      for (let offset = -3; offset <= 3; offset++) {
+        const y = currentYear + offset;
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.text = String(y);
+        yearSel.appendChild(opt);
+      }
+    }
+
+    function populateDays() {
+      const y = parseInt(yearSel.value, 10);
+      const m = parseInt(monthSel.value, 10);
+      const daysInMonth = new Date(y, m, 0).getDate();
+      daySel.innerHTML = "";
+      for (let d = 1; d <= daysInMonth; d++) {
+        const opt = document.createElement("option");
+        opt.value = String(d).padStart(2, "0");
+        opt.text = String(d).padStart(2, "0");
+        daySel.appendChild(opt);
+      }
+    }
+
+    monthSel.onchange = populateDays;
+    yearSel.onchange = populateDays;
+
+    // initial population
+    if (!monthSel.value)
+      monthSel.value = String(new Date().getMonth() + 1).padStart(2, "0");
+    if (!yearSel.value) yearSel.value = String(new Date().getFullYear());
+    populateDays();
+  }
+
+  function showDayResetPanel() {
+    initDaySelect();
+    document.getElementById("dayResetPanel").style.display = "block";
+    document.getElementById("monthResetPanel").style.display = "none";
+  }
+
+  function initMonthResetSelect() {
+    const yearSelect = document.getElementById("resetMonthYear");
+    if (yearSelect.options.length > 0) return;
+
+    const currentYear = new Date().getFullYear();
+    for (let offset = -3; offset <= 3; offset++) {
+      const year = currentYear + offset;
+      const option = document.createElement("option");
+      option.value = year.toString();
+      option.text = year.toString();
+      yearSelect.appendChild(option);
+    }
+  }
+
+  function showMonthResetPanel() {
+    initMonthResetSelect();
+    document.getElementById("monthResetPanel").style.display = "block";
+    document.getElementById("dayResetPanel").style.display = "none";
+  }
+
+  function confirmResetDay() {
+    const d = document.getElementById("resetDayDay").value;
+    const m = document.getElementById("resetDayMonth").value;
+    const y = document.getElementById("resetDayYear").value;
+    if (!d || !m || !y) {
+      alert("Vui lòng chọn ngày/tháng/năm cần reset.");
+      return;
+    }
+
+    const day = `${y}-${m}-${d}`;
+
+    if (!confirm(`Bạn có chắc chắn muốn reset dữ liệu ngày ${day}?`)) return;
+
+    db.ref(`bird_data/${day}`)
+      .once("value")
+      .then((snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          alert("Không tìm thấy dữ liệu cho ngày đã chọn.");
+          return;
+        }
+
+        const deleted = {};
+        deleted[day] = data;
+        lastDeletedData = deleted;
+        deletedType = "day";
+
+        db.ref(`bird_data/${day}`)
+          .remove()
+          .then(() => {
+            showUndoMessage(day, 1, "day");
+            refreshAfterReset();
+          });
+      });
+  }
+
+  function confirmResetMonth() {
+    const month = document.getElementById("resetMonthMonth").value;
+    const year = document.getElementById("resetMonthYear").value;
+    if (!month || !year) {
+      alert("Vui lòng chọn tháng và năm cần reset.");
+      return;
+    }
+
+    const monthInput = `${year}-${month}`;
+    const monthPrefix = `${year}-${month}-`;
+
+    if (
+      !confirm(`Bạn có chắc chắn muốn reset dữ liệu tháng ${month}/${year}?`)
+    ) {
+      return;
+    }
+
+    db.ref("bird_data")
+      .once("value")
+      .then((snapshot) => {
+        const data = snapshot.val() || {};
+        const deleted = {};
+        let deletedCount = 0;
+
+        for (let date in data) {
+          if (date.startsWith(monthPrefix)) {
+            deleted[date] = data[date];
+            db.ref(`bird_data/${date}`).remove();
+            deletedCount++;
+          }
+        }
+
+        if (deletedCount === 0) {
+          alert("Không tìm thấy dữ liệu cho tháng đã chọn.");
+          return;
+        }
+
+        lastDeletedData = deleted;
+        deletedType = "month";
+        showUndoMessage(monthInput, deletedCount, "month");
+        refreshAfterReset();
+      });
+  }
+
+  function showUndoMessage(idText, deletedCount, type) {
+    const messageEl = document.getElementById("resetMessageText");
+    const countdownEl = document.getElementById("undoCountdown");
+    const undoBox = document.getElementById("resetMessage");
+
+    if (type === "day") {
+      messageEl.innerText = `Đã xóa dữ liệu ngày ${idText}.`;
+    } else {
+      const [year, month] = idText.split("-");
+      messageEl.innerText = `Đã xóa ${deletedCount} ngày của tháng ${month}/${year}.`;
+    }
+
+    countdownEl.innerText = "10";
+    undoBox.style.display = "block";
+
+    if (undoTimer) clearInterval(undoTimer);
+
+    let seconds = 10;
+    undoTimer = setInterval(() => {
+      seconds -= 1;
+      countdownEl.innerText = seconds;
+      if (seconds <= 0) {
+        clearInterval(undoTimer);
+        undoTimer = null;
+        lastDeletedData = null;
+        deletedType = null;
+        hideResetMessage();
+      }
+    }, 1000);
+  }
+
+  function hideResetMessage() {
+    const undoBox = document.getElementById("resetMessage");
+    if (undoBox) undoBox.style.display = "none";
+  }
+
+  function undoReset() {
+    if (!lastDeletedData) return;
+
+    const promises = [];
+    for (let date in lastDeletedData) {
+      promises.push(db.ref(`bird_data/${date}`).set(lastDeletedData[date]));
+    }
+
+    Promise.all(promises).then(() => {
+      alert("Đã khôi phục dữ liệu.");
+      lastDeletedData = null;
+      deletedType = null;
+      if (undoTimer) {
+        clearInterval(undoTimer);
+        undoTimer = null;
+      }
+      hideResetMessage();
+      refreshAfterReset();
+    });
+  }
+
+  function refreshAfterReset() {
+    if (typeof loadMonthChart === "function") loadMonthChart();
+    if (typeof loadChart === "function") loadChart();
+    const fromDate = document.getElementById("fromDate")?.value;
+    const toDate = document.getElementById("toDate")?.value;
+    if (fromDate && toDate) loadStats();
+  }
+
   //Bật tắt hệ thống
   function toggleSystem(state) {
     db.ref("config/enabled").set(state);
