@@ -279,9 +279,8 @@
         }
 
         .logo {
-          width: 40px;
+          display: none;
         }
-
         /* MAIN */
         .main {
           padding: 10px;
@@ -397,13 +396,11 @@
             <div class="card small mt15">
               <h4>Chim Vào</h4>
               <div class="big-number">0</div>
-              <div class="speed">0 m/s</div>
             </div>
 
             <div class="card small mt15">
               <h4>Chim Ra</h4>
               <div class="big-number">0</div>
-              <div class="speed">0 m/s</div>
             </div>
 
             <div class="card small mt15">
@@ -864,14 +861,14 @@
     let today = new Date().toISOString().split("T")[0];
 
     const hours = [];
-    const vao = new Array(15).fill(0);
-    const ra = new Array(15).fill(0);
+    const vao = new Array(24).fill(0);
+    const ra = new Array(24).fill(0);
 
     let loaded = 0;
 
-    for (let h = 5; h <= 19; h++) {
+    for (let h = 0; h <= 23; h++) {
       let hour = h.toString().padStart(2, "0");
-      let index = h - 5; // vị trí trong mảng
+      let index = h; // vị trí trong mảng (0-23)
 
       hours[index] = hour + ":00";
 
@@ -885,7 +882,7 @@
 
           loaded++;
 
-          if (loaded === 15) {
+          if (loaded === 24) {
             drawChart(hours, vao, ra);
           }
         });
@@ -993,7 +990,6 @@
       : "Offline";
   });
 </script>
-
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
