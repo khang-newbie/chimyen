@@ -647,6 +647,38 @@
               Tắt hệ thống
             </button>
           </div>
+          <!-- WIFI CONFIG -->
+          <div class="connect-card" style="width: 100%">
+            <h3>Cấu hình WiFi ESP32</h3>
+
+            <p style="color: #94a3b8; font-size: 14px">
+              Kết nối điện thoại vào WiFi của ESP32 rồi quét mạng WiFi xung
+              quanh.
+            </p>
+
+            <button class="btn" onclick="openWifiConfig()">
+              Mở cấu hình WiFi
+            </button>
+
+            <div
+              id="wifiFrameBox"
+              style="
+                margin-top: 15px;
+                display: none;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid #334155;
+              "
+            >
+              <iframe
+                id="wifiFrame"
+                src=""
+                width="100%"
+                height="500"
+                style="border: none; background: white"
+              ></iframe>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1319,6 +1351,7 @@
   }
   // Reset dữ liệu (day/month) with undo
   let lastDeletedData = null;
+  let lastDeletedTotals = null;
   let deletedType = null; // 'day' or 'month'
   let undoTimer = null;
 
@@ -1326,6 +1359,18 @@
     db.ref("tong_vao").set(0);
     db.ref("tong_ra").set(0);
     alert("Đã reset counters!");
+  }
+
+  function saveCurrentTotalsForUndo() {
+    return Promise.all([
+      db.ref("tong_vao").once("value"),
+      db.ref("tong_ra").once("value"),
+    ]).then(([vaoSnap, raSnap]) => {
+      lastDeletedTotals = {
+        tong_vao: vaoSnap.val() || 0,
+        tong_ra: raSnap.val() || 0,
+      };
+    });
   }
 
   function showResetPanel() {
@@ -1423,27 +1468,31 @@
 
     if (!confirm(`Bạn có chắc chắn muốn reset dữ liệu ngày ${day}?`)) return;
 
-    db.ref(`bird_data/${day}`)
-      .once("value")
-      .then((snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-          alert("Không tìm thấy dữ liệu cho ngày đã chọn.");
-          return;
-        }
+    saveCurrentTotalsForUndo().then(() => {
+      db.ref(`bird_data/${day}`)
+        .once("value")
+        .then((snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            alert("Không tìm thấy dữ liệu cho ngày đã chọn.");
+            return;
+          }
 
-        const deleted = {};
-        deleted[day] = data;
-        lastDeletedData = deleted;
-        deletedType = "day";
+          const deleted = {};
+          deleted[day] = data;
+          lastDeletedData = deleted;
+          deletedType = "day";
 
-        db.ref(`bird_data/${day}`)
-          .remove()
-          .then(() => {
-            showUndoMessage(day, 1, "day");
-            refreshAfterReset();
-          });
-      });
+          db.ref(`bird_data/${day}`)
+            .remove()
+            .then(() => {
+              db.ref("tong_vao").set(0);
+              db.ref("tong_ra").set(0);
+              showUndoMessage(day, 1, "day");
+              refreshAfterReset();
+            });
+        });
+    });
   }
 
   function confirmResetMonth() {
@@ -1463,31 +1512,40 @@
       return;
     }
 
-    db.ref("bird_data")
-      .once("value")
-      .then((snapshot) => {
-        const data = snapshot.val() || {};
-        const deleted = {};
-        let deletedCount = 0;
+    saveCurrentTotalsForUndo().then(() => {
+      db.ref("bird_data")
+        .once("value")
+        .then((snapshot) => {
+          const data = snapshot.val() || {};
+          const deleted = {};
+          const updates = {};
+          let deletedCount = 0;
 
-        for (let date in data) {
-          if (date.startsWith(monthPrefix)) {
-            deleted[date] = data[date];
-            db.ref(`bird_data/${date}`).remove();
-            deletedCount++;
+          for (let date in data) {
+            if (date.startsWith(monthPrefix)) {
+              deleted[date] = data[date];
+              updates[`bird_data/${date}`] = null;
+              deletedCount++;
+            }
           }
-        }
 
-        if (deletedCount === 0) {
-          alert("Không tìm thấy dữ liệu cho tháng đã chọn.");
-          return;
-        }
+          if (deletedCount === 0) {
+            alert("Không tìm thấy dữ liệu cho tháng đã chọn.");
+            return;
+          }
 
-        lastDeletedData = deleted;
-        deletedType = "month";
-        showUndoMessage(monthInput, deletedCount, "month");
-        refreshAfterReset();
-      });
+          db.ref()
+            .update(updates)
+            .then(() => {
+              lastDeletedData = deleted;
+              deletedType = "month";
+              db.ref("tong_vao").set(0);
+              db.ref("tong_ra").set(0);
+              showUndoMessage(monthInput, deletedCount, "month");
+              refreshAfterReset();
+            });
+        });
+    });
   }
 
   function showUndoMessage(idText, deletedCount, type) {
@@ -1529,14 +1587,22 @@
   function undoReset() {
     if (!lastDeletedData) return;
 
-    const promises = [];
+    const restorePromises = [];
     for (let date in lastDeletedData) {
-      promises.push(db.ref(`bird_data/${date}`).set(lastDeletedData[date]));
+      restorePromises.push(
+        db.ref(`bird_data/${date}`).set(lastDeletedData[date]),
+      );
     }
 
-    Promise.all(promises).then(() => {
+    if (lastDeletedTotals) {
+      restorePromises.push(db.ref("tong_vao").set(lastDeletedTotals.tong_vao));
+      restorePromises.push(db.ref("tong_ra").set(lastDeletedTotals.tong_ra));
+    }
+
+    Promise.all(restorePromises).then(() => {
       alert("Đã khôi phục dữ liệu.");
       lastDeletedData = null;
+      lastDeletedTotals = null;
       deletedType = null;
       if (undoTimer) {
         clearInterval(undoTimer);
@@ -1581,5 +1647,17 @@
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
+  }
+</script>
+//wifi config
+<script>
+  function openWifiConfig() {
+    const frameBox = document.getElementById("wifiFrameBox");
+    const frame = document.getElementById("wifiFrame");
+
+    frameBox.style.display = "block";
+
+    // IP mặc định ESP32 AP mode
+    frame.src = "http://192.168.4.1";
   }
 </script>
