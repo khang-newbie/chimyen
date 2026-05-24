@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard Nhà Yến</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  </head>
+
+  <body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <img src="CTU_logo.png" class="logo" />
+      <h2>NHÀ YẾN</h2>
+      <a href="#" onclick="showPage('home')">Trang chủ</a>
+      <a href="#" onclick="showPage('connect')">Kết nối</a>
+      <a href="#" onclick="showPage('stats')">Thống kê</a>
+      <a href="#" onclick="showPage('export')">Hỗ trợ</a>
+      <a href="#" onclick="showPage('about')">Giới thiệu</a>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <!-- TRANG CHỦ -->
+      <div id="home" class="page">
+        <div>
+          <div class="row">
+            <div class="card small mt15">
+              <h4>Chim Vào</h4>
+              <div class="big-number">0</div>
+            </div>
+
+            <div class="card small mt15">
+              <h4>Chim Ra</h4>
+              <div class="big-number">0</div>
+            </div>
+
+            <div class="card small mt15">
+              <h4>Tổng Trong Nhà</h4>
+              <div class="big-number">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LINE CHART -->
+        <div class="chart-box card mt15">
+          <h3>Thống kê theo ngày</h3>
+          <canvas id="lineChart"></canvas>
+        </div>
+
+        <!-- BAR CHART -->
+        <div class="chart-box card month-only mt30">
+          <h3>Thống kê theo tháng</h3>
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- KẾT NỐI -->
+      <div id="connect" class="page" style="display: none">
+        <h2 style="margin-bottom: 20px">Kết nối thiết bị</h2>
+
+        <div class="connect-grid">
+          <!-- STATUS -->
+          <div class="connect-card">
+            <h3>Trạng thái hệ thống</h3>
+            <div class="status-row">
+              <span>ESP32:</span>
+              <span id="espStatus" class="status offline">Offline</span>
+            </div>
+
+            <div class="status-row">
+              <span>Radar:</span>
+              <span id="radarStatus" class="status offline">Offline</span>
+            </div>
+          </div>
+
+          <!-- THRESHOLD -->
+          <div class="connect-card">
+            <h3>Ngưỡng phát hiện</h3>
+
+            <input
+              type="range"
+              id="thresholdSlider"
+              min="10"
+              max="100"
+              value="25"
+              oninput="updateThresholdValue(this.value)"
+            />
+
+            <div class="slider-value">
+              Ngưỡng: <span id="thresholdValue">25</span>
+            </div>
+
+            <button class="btn-save" onclick="saveThreshold()">Lưu</button>
+          </div>
+
+          <!-- CONTROL -->
+          <div class="connect-card">
+            <h3>Điều khiển</h3>
+
+            <button class="btn danger" onclick="showResetPanel()">
+              Reset dữ liệu
+            </button>
+
+            <div style="margin-top: 10px">
+              <div id="resetPanel" style="display: none; margin-top: 8px">
+                <button
+                  class="btn"
+                  onclick="showDayResetPanel()"
+                  style="
+                    width: 100%;
+                    margin-bottom: 8px;
+                    background: #f59e0b;
+                    color: white;
+                    border: none;
+                  "
+                >
+                  Reset ngày
+                </button>
+                <button
+                  class="btn"
+                  onclick="showMonthResetPanel()"
+                  style="
+                    width: 100%;
+                    margin-bottom: 8px;
+                    background: #7c3aed;
+                    color: white;
+                    border: none;
+                  "
+                >
+                  Reset tháng
+                </button>
+
+                <div id="dayResetPanel" style="display: none; margin-top: 8px">
+                  <label
+                    style="
+                      display: block;
+                      margin-bottom: 8px;
+                      font-size: 14px;
+                      color: #94a3b8;
+                    "
+                    >Chọn ngày để reset</label
+                  >
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px">
+                    <select
+                      id="resetDayDay"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                    <select
+                      id="resetDayMonth"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                    <select
+                      id="resetDayYear"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                  </div>
+                  <button
+                    class="btn gray"
+                    onclick="confirmResetDay()"
+                    style="margin-top: 10px; width: 100%"
+                  >
+                    Xác nhận reset ngày
+                  </button>
+                </div>
+
+                <div
+                  id="monthResetPanel"
+                  style="display: none; margin-top: 8px"
+                >
+                  <label
+                    style="
+                      display: block;
+                      margin-bottom: 8px;
+                      font-size: 14px;
+                      color: #94a3b8;
+                    "
+                    >Chọn tháng để reset</label
+                  >
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px">
+                    <select
+                      id="resetMonthMonth"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    >
+                      <option value="01">01</option>
+                      <option value="02">02</option>
+                      <option value="03">03</option>
+                      <option value="04">04</option>
+                      <option value="05">05</option>
+                      <option value="06">06</option>
+                      <option value="07">07</option>
+                      <option value="08">08</option>
+                      <option value="09">09</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                    <select
+                      id="resetMonthYear"
+                      style="
+                        flex: 1;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                      "
+                    ></select>
+                  </div>
+                  <button
+                    class="btn gray"
+                    onclick="confirmResetMonth()"
+                    style="margin-top: 10px; width: 100%"
+                  >
+                    Xác nhận reset tháng
+                  </button>
+                </div>
+
+                <div
+                  id="resetMessage"
+                  class="undo-box"
+                  style="display: none; margin-top: 10px"
+                >
+                  <p id="resetMessageText"></p>
+                  <button
+                    class="btn-save"
+                    onclick="undoReset()"
+                    id="undoResetBtn"
+                  >
+                    Khôi phục trong <span id="undoCountdown">10</span>s
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn" onclick="toggleSystem(true)">
+              Bật hệ thống
+            </button>
+            <button class="btn gray" onclick="toggleSystem(false)">
+              Tắt hệ thống
+            </button>
+          </div>
+
+          <!-- WIFI CONFIG -->
+          <div class="connect-card" style="width: 100%">
+            <h3>Cấu hình WiFi ESP32</h3>
+
+            <p style="color: #94a3b8; font-size: 14px">
+              Kết nối điện thoại hoặc laptop vào WiFi của ESP32 rồi quét mạng
+              WiFi xung quanh.
+            </p>
+
+            <button class="btn" onclick="openWifiConfig()">
+              Mở cấu hình WiFi
+            </button>
+
+            <div
+              id="wifiFrameBox"
+              style="
+                margin-top: 15px;
+                display: none;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid #334155;
+              "
+            >
+              <iframe
+                id="wifiFrame"
+                src=""
+                width="100%"
+                height="500"
+                style="border: none; background: white"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THỐNG KÊ -->
+      <div id="stats" class="page" style="display: none; padding: 20px">
+        <!-- BỘ LỌC -->
+        <div
+          style="
+            background: #2c384c;
+            padding: 20px;
+            border-radius: 20px;
+            width: 290px;
+          "
+        >
+          <div style="display: grid; gap: 10px">
+            <button class="btn" onclick="toggleStatsDatePanel()">
+              Chọn ngày xem
+            </button>
+            <div id="statsDatePanel" style="display: none; margin-top: 8px">
+              <div>
+                <div
+                  style="margin-bottom: 8px; font-size: 14px; color: #94a3b8"
+                >
+                  Từ ngày
+                </div>
+                <div style="display: flex; gap: 8px">
+                  <select
+                    id="fromDay"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="fromMonth"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="fromYear"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                </div>
+              </div>
+              <div style="margin-top: 8px">
+                <div
+                  style="margin-bottom: 8px; font-size: 14px; color: #94a3b8"
+                >
+                  Đến ngày
+                </div>
+                <div style="display: flex; gap: 8px">
+                  <select
+                    id="toDay"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="toMonth"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                  <select
+                    id="toYear"
+                    style="
+                      flex: 1;
+                      padding: 10px;
+                      border-radius: 8px;
+                      border: 1px solid #334155;
+                      background: #0f172a;
+                      color: #e2e8f0;
+                    "
+                  ></select>
+                </div>
+              </div>
+              <button
+                onclick="loadStats()"
+                class="btn gray"
+                style="margin-top: 8px"
+              >
+                Xem
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BẢNG DỮ LIỆU -->
+        <div style="margin-top: 30px">
+          <div
+            style="
+              max-height: 500px;
+              overflow-y: auto;
+              border-radius: 10px;
+              border: 1px solid #1f3d44;
+            "
+          >
+            <table
+              width="100%"
+              style="border-collapse: collapse; text-align: center"
+            >
+              <thead
+                style="
+                  background: #1e293b;
+                  position: sticky;
+                  top: 0;
+                  z-index: 1;
+                "
+              >
+                <tr>
+                  <th>Ngày-tháng-năm</th>
+                  <th>Giờ</th>
+                  <th>Chim vào</th>
+                  <th>Chim ra</th>
+                  <th>Tổng đàn trong nhà</th>
+                </tr>
+              </thead>
+
+              <tbody id="statsTable"></tbody>
+            </table>
+          </div>
+          <!-- NÚT XUẤT FILE -->
+          <div class="export-wrapper">
+            <button onclick="exportToExcel()" class="export-btn">
+              Xuất file Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HỖ TRỢ -->
+      <div id="export" class="page card" style="display: none">
+        <div class="support-box">
+          <h2>Hỗ trợ hệ thống</h2>
+
+          <p>
+            Nếu bạn gặp sự cố trong quá trình sử dụng hệ thống giám sát nhà yến,
+            vui lòng gửi yêu cầu hỗ trợ để được xử lý sớm nhất.
+          </p>
+
+          <ul>
+            <li>🔧 Lỗi kết nối thiết bị (ESP32, cảm biến).</li>
+            <li>📡 Không nhận dữ liệu từ Firebase.</li>
+            <li>📊 Sai lệch dữ liệu thống kê.</li>
+            <li>⚙️ Các vấn đề khác liên quan đến hệ thống.</li>
+          </ul>
+
+          <button class="support-btn" onclick="sendEmail()">
+            📧 Gửi yêu cầu hỗ trợ
+          </button>
+        </div>
+      </div>
+
+      <!-- GIỚI THIỆU -->
+      <div id="about" class="page">
+        <div class="about-box">
+          <h2>Giới thiệu hệ thống</h2>
+
+          <p>
+            Đây là hệ thống giám sát nhà yến thông minh ứng dụng công nghệ IoT,
+            giúp theo dõi số lượng chim ra vào theo thời gian thực.
+          </p>
+
+          <p>
+            Hệ thống sử dụng cảm biến LD2410c để phát hiện chuyển động, kết hợp
+            với vi điều khiển ESP32 để xử lý và gửi dữ liệu lên Firebase. Dữ
+            liệu sau đó được hiển thị trên giao diện web dưới dạng biểu đồ trực
+            quan và dễ theo dõi.
+          </p>
+
+          <h3>Chức năng chính:</h3>
+          <ul>
+            <li>📊 Thống kê chim vào / ra theo giờ, ngày, tháng</li>
+            <li>📈 Hiển thị biểu đồ trực quan</li>
+            <li>📡 Theo dõi trạng thái kết nối thiết bị</li>
+            <li>☁️ Đồng bộ dữ liệu thời gian thực với Firebase</li>
+          </ul>
+
+          <h3>Công nghệ sử dụng:</h3>
+          <ul>
+            <li>⚙️ ESP32</li>
+            <li>📡 Cảm biến LD2410c</li>
+            <li>🔥 Firebase Realtime Database</li>
+            <li>🌐 HTML, CSS, JavaScript (Chart.js)</li>
+          </ul>
+
+          <p>
+            Hệ thống giúp nâng cao hiệu quả quản lý nhà yến, giảm công sức và
+            tăng độ chính xác trong việc theo dõi số lượng chim.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+  </body>
+</html>
