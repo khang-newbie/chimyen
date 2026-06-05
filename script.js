@@ -128,7 +128,7 @@ function drawChart(hours, vao, ra) {
 }
 
 function drawMonthChart(vao, ra, tong) {
-  new Chart(document.getElementById("barChart"), {
+  barChart = new Chart(document.getElementById("barChart"), {
     type: "bar",
     data: {
       labels: [
@@ -219,29 +219,21 @@ function loadChart() {
   const vao = new Array(24).fill(0);
   const ra = new Array(24).fill(0);
 
-  let loaded = 0;
-
-  function updateChartDisplay() {
-    if (!lineChart) {
-      drawChart(hours, vao, ra);
-    } else {
-      lineChart.data.datasets[0].data = vao;
-      lineChart.data.datasets[1].data = ra;
-      lineChart.update();
-    }
-
-    // Cập nhật tổng vào/ra trong Firebase khi dữ liệu hôm nay thay đổi
-    const todayVao = vao.reduce((sum, val) => sum + (val || 0), 0);
-    const todayRa = ra.reduce((sum, val) => sum + (val || 0), 0);
-    db.ref("tong_vao").set(todayVao);
-    db.ref("tong_ra").set(todayRa);
-  }
-
   for (let h = 0; h <= 23; h++) {
     let hour = h.toString().padStart(2, "0");
     let index = h;
-
     hours[index] = hour + ":00";
+  }
+
+  // Vẽ biểu đồ ngay với dữ liệu trống
+  if (!lineChart) {
+    drawChart(hours, vao, ra);
+  }
+
+  // Lắng nghe từng giờ theo real-time
+  for (let h = 0; h <= 23; h++) {
+    let hour = h.toString().padStart(2, "0");
+    let index = h;
 
     db.ref("bird_data/" + today + "/" + hour).on("value", (snapshot) => {
       let data = snapshot.val() || {};
@@ -249,46 +241,118 @@ function loadChart() {
       vao[index] = data.vao || 0;
       ra[index] = data.ra || 0;
 
-      loaded++;
-      if (loaded >= 24) {
-        updateChartDisplay();
+      // Cập nhật biểu đồ ngay mà không phải chờ tất cả dữ liệu
+      if (lineChart) {
+        lineChart.data.datasets[0].data = vao;
+        lineChart.data.datasets[1].data = ra;
+        lineChart.update("none"); // Cập nhật mà không có animation
       }
+
+      // Cập nhật tổng vào/ra trong Firebase
+      const todayVao = vao.reduce((sum, val) => sum + (val || 0), 0);
+      const todayRa = ra.reduce((sum, val) => sum + (val || 0), 0);
+      db.ref("tong_vao").set(todayVao);
+      db.ref("tong_ra").set(todayRa);
     });
   }
 }
 
 loadChart();
 
-// ===== LOAD MONTHLY CHART =====
+// ===== LOAD MONTHLY CHART (OPTIMIZED REAL-TIME) =====
+let barChart;
+let monthData = {
+  vao: new Array(12).fill(0),
+  ra: new Array(12).fill(0),
+  tong: new Array(12).fill(0),
+};
+let monthDailyCache = {}; // Lưu dữ liệu ngày để tính tháng chính xác
+
 function loadMonthChart() {
-  const vaoMonth = new Array(12).fill(0);
-  const raMonth = new Array(12).fill(0);
-  const tongMonth = new Array(12).fill(0);
+  const currentYear = new Date().getFullYear();
+  let processedMonths = 0;
 
-  db.ref("bird_data")
-    .once("value")
-    .then((snapshot) => {
-      const data = snapshot.val();
+  // Chỉ tải dữ liệu của năm hiện tại
+  for (let m = 0; m < 12; m++) {
+    const month = String(m + 1).padStart(2, "0");
 
-      for (let date in data) {
-        const month = new Date(date).getMonth();
-        const hours = data[date];
+    // Tìm tất cả ngày trong tháng của năm hiện tại
+    db.ref("bird_data")
+      .orderByKey()
+      .startAt(`${currentYear}-${month}-01`)
+      .endAt(`${currentYear}-${month}-31`)
+      .once("value")
+      .then((snapshot) => {
+        const dates = snapshot.val() || {};
 
-        for (let hour in hours) {
-          const vao = hours[hour].vao || 0;
-          const ra = hours[hour].ra || 0;
+        let monthVao = 0;
+        let monthRa = 0;
 
-          vaoMonth[month] += vao;
-          raMonth[month] += ra;
+        for (let date in dates) {
+          monthDailyCache[date] = { vao: 0, ra: 0 };
+          const hours = dates[date] || {};
+          for (let hour in hours) {
+            monthVao += hours[hour].vao || 0;
+            monthRa += hours[hour].ra || 0;
+            monthDailyCache[date].vao += hours[hour].vao || 0;
+            monthDailyCache[date].ra += hours[hour].ra || 0;
+          }
         }
-      }
 
-      for (let i = 0; i < 12; i++) {
-        tongMonth[i] = vaoMonth[i] - raMonth[i];
-      }
+        monthData.vao[m] = monthVao;
+        monthData.ra[m] = monthRa;
+        monthData.tong[m] = monthVao - monthRa;
 
-      drawMonthChart(vaoMonth, raMonth, tongMonth);
-    });
+        processedMonths++;
+
+        // Vẽ/cập nhật biểu đồ khi có dữ liệu đủ
+        if (!barChart) {
+          drawMonthChart(monthData.vao, monthData.ra, monthData.tong);
+        } else {
+          barChart.data.datasets[0].data = monthData.vao;
+          barChart.data.datasets[1].data = monthData.ra;
+          barChart.data.datasets[2].data = monthData.tong;
+          barChart.update("none"); // Cập nhật mà không có animation
+        }
+      });
+  }
+
+  // Lắng nghe dữ liệu mới hôm nay để cập nhật real-time
+  const today = new Date().toISOString().split("T")[0];
+  const todayMonth = new Date().getMonth();
+
+  db.ref(`bird_data/${today}`).on("value", (snapshot) => {
+    const hours = snapshot.val() || {};
+    let todayVao = 0;
+    let todayRa = 0;
+
+    for (let hour in hours) {
+      todayVao += hours[hour].vao || 0;
+      todayRa += hours[hour].ra || 0;
+    }
+
+    // Nếu đã có cache cho hôm nay, trừ đi giá trị cũ
+    if (monthDailyCache[today]) {
+      monthData.vao[todayMonth] -= monthDailyCache[today].vao;
+      monthData.ra[todayMonth] -= monthDailyCache[today].ra;
+    }
+
+    // Thêm dữ liệu mới
+    monthData.vao[todayMonth] += todayVao;
+    monthData.ra[todayMonth] += todayRa;
+    monthData.tong[todayMonth] =
+      monthData.vao[todayMonth] - monthData.ra[todayMonth];
+
+    // Cập nhật cache
+    monthDailyCache[today] = { vao: todayVao, ra: todayRa };
+
+    if (barChart) {
+      barChart.data.datasets[0].data[todayMonth] = monthData.vao[todayMonth];
+      barChart.data.datasets[1].data[todayMonth] = monthData.ra[todayMonth];
+      barChart.data.datasets[2].data[todayMonth] = monthData.tong[todayMonth];
+      barChart.update("none");
+    }
+  });
 }
 
 loadMonthChart();
