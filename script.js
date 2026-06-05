@@ -502,6 +502,24 @@ function resetCounter() {
   alert("Đã reset counters!");
 }
 
+function resetAllData() {
+  if (!confirm("Bạn có chắc chắn muốn xóa hết dữ liệu và đưa về 0?")) return;
+
+  db.ref("bird_data")
+    .set(null)
+    .then(() =>
+      Promise.all([db.ref("tong_vao").set(0), db.ref("tong_ra").set(0)]),
+    )
+    .then(() => {
+      alert("Đã xóa hết dữ liệu và đưa về 0.");
+      refreshAfterReset();
+    })
+    .catch((error) => {
+      console.error(error);
+      alert("Xảy ra lỗi khi xóa dữ liệu.");
+    });
+}
+
 function saveCurrentTotalsForUndo() {
   return Promise.all([
     db.ref("tong_vao").once("value"),
@@ -792,4 +810,15 @@ function openWifiConfig() {
 // ===== SERVICE WORKER =====
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
+}
+
+function resetESP() {
+  if (confirm("Bạn có chắc muốn reset ESP32?")) {
+    const resetRef = db.ref("command/reset_esp");
+    resetRef.set(true);
+
+    setTimeout(() => {
+      resetRef.set(false);
+    }, 5000);
+  }
 }
