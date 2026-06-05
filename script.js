@@ -822,3 +822,13 @@ function resetESP() {
     }, 5000);
   }
 }
+function resetAllData() {
+  if (confirm("Bạn có chắc muốn reset tất cả dữ liệu?")) {
+    const resetRef = db.ref("command/reset_data");
+    resetRef.set(true);
+
+    setTimeout(() => {
+      resetRef.set(false);
+    }, 5000);
+  }
+}
