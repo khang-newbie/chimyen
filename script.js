@@ -127,8 +127,14 @@ function drawChart(hours, vao, ra) {
   });
 }
 
+let monthChart;
 function drawMonthChart(vao, ra, tong) {
-  new Chart(document.getElementById("barChart"), {
+  const ctx = document.getElementById("barChart");
+  if (monthChart) {
+    monthChart.destroy();
+  }
+
+  monthChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: [
@@ -229,12 +235,6 @@ function loadChart() {
       lineChart.data.datasets[1].data = ra;
       lineChart.update();
     }
-
-    // Cập nhật tổng vào/ra trong Firebase khi dữ liệu hôm nay thay đổi
-    const todayVao = vao.reduce((sum, val) => sum + (val || 0), 0);
-    const todayRa = ra.reduce((sum, val) => sum + (val || 0), 0);
-    db.ref("tong_vao").set(todayVao);
-    db.ref("tong_ra").set(todayRa);
   }
 
   for (let h = 0; h <= 23; h++) {
@@ -261,34 +261,31 @@ loadChart();
 
 // ===== LOAD MONTHLY CHART =====
 function loadMonthChart() {
-  const vaoMonth = new Array(12).fill(0);
-  const raMonth = new Array(12).fill(0);
-  const tongMonth = new Array(12).fill(0);
+  db.ref("bird_data").on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+    const vaoMonth = new Array(12).fill(0);
+    const raMonth = new Array(12).fill(0);
+    const tongMonth = new Array(12).fill(0);
 
-  db.ref("bird_data")
-    .once("value")
-    .then((snapshot) => {
-      const data = snapshot.val();
+    for (let date in data) {
+      const month = new Date(date).getMonth();
+      const hours = data[date] || {};
 
-      for (let date in data) {
-        const month = new Date(date).getMonth();
-        const hours = data[date];
+      for (let hour in hours) {
+        const vao = hours[hour].vao || 0;
+        const ra = hours[hour].ra || 0;
 
-        for (let hour in hours) {
-          const vao = hours[hour].vao || 0;
-          const ra = hours[hour].ra || 0;
-
-          vaoMonth[month] += vao;
-          raMonth[month] += ra;
-        }
+        vaoMonth[month] += vao;
+        raMonth[month] += ra;
       }
+    }
 
-      for (let i = 0; i < 12; i++) {
-        tongMonth[i] = vaoMonth[i] - raMonth[i];
-      }
+    for (let i = 0; i < 12; i++) {
+      tongMonth[i] = vaoMonth[i] - raMonth[i];
+    }
 
-      drawMonthChart(vaoMonth, raMonth, tongMonth);
-    });
+    drawMonthChart(vaoMonth, raMonth, tongMonth);
+  });
 }
 
 loadMonthChart();
@@ -317,8 +314,7 @@ function initStatsDateSelects() {
 
   function populateYear(select) {
     if (select.options.length > 0) return;
-    for (let offset = -3; offset <= 3; offset++) {
-      const year = currentYear + offset;
+    for (let year = 2026; year <= 2029; year++) {
       const option = document.createElement("option");
       option.value = year.toString();
       option.text = year.toString();
@@ -553,12 +549,10 @@ function initDaySelect() {
   }
 
   if (yearSel.options.length === 0) {
-    const currentYear = new Date().getFullYear();
-    for (let offset = -3; offset <= 3; offset++) {
-      const y = currentYear + offset;
+    for (let year = 2026; year <= 2029; year++) {
       const opt = document.createElement("option");
-      opt.value = String(y);
-      opt.text = String(y);
+      opt.value = String(year);
+      opt.text = String(year);
       yearSel.appendChild(opt);
     }
   }
@@ -595,9 +589,7 @@ function initMonthResetSelect() {
   const yearSelect = document.getElementById("resetMonthYear");
   if (yearSelect.options.length > 0) return;
 
-  const currentYear = new Date().getFullYear();
-  for (let offset = -3; offset <= 3; offset++) {
-    const year = currentYear + offset;
+  for (let year = 2026; year <= 2029; year++) {
     const option = document.createElement("option");
     option.value = year.toString();
     option.text = year.toString();
