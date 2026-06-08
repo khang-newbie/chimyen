@@ -208,8 +208,16 @@ canvas {
   background: #1e293b;
   padding: 20px;
   border-radius: 15px;
-  width: 280px;
+  width: 320px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
+
+.connect-card.connect-card-large {
+  width: 420px;
+}
+
+.connect-card.connect-card-full {
+  width: 100%;
 }
 
 .connect-card h3 {

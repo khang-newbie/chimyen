@@ -528,7 +528,7 @@ function sendEmail() {
 }
 
 // ===== CONNECTION & THRESHOLD =====
-/* ngưỡng và wifi
+// ngưỡng và wifi
 function updateThresholdValue(val) {
   document.getElementById("thresholdValue").innerText = val;
 }
@@ -550,7 +550,7 @@ function saveWifiConfig() {
   db.ref("config/wifi").set({ ssid, pass });
   document.getElementById("wifiStatusText").innerText = "Đã lưu cấu hình WiFi.";
 }
-*/
+
 db.ref("config/wifi").on("value", (snapshot) => {
   const data = snapshot.val() || {};
   document.getElementById("wifiSsid").value = data.ssid || "";
@@ -571,6 +571,7 @@ function resetCounter() {
   db.ref("tong_ra").set(0);
   alert("Đã reset counters!");
 }
+/*
 // xóa hết dữ liệu và đưa về 0 tất cả
 function resetAllData() {
   if (!confirm("Bạn có chắc chắn muốn xóa hết dữ liệu và đưa về 0?")) return;
@@ -589,7 +590,7 @@ function resetAllData() {
       alert("Xảy ra lỗi khi xóa dữ liệu.");
     });
 }
-
+*/
 function saveCurrentTotalsForUndo() {
   return Promise.all([
     db.ref("tong_vao").once("value"),
@@ -842,7 +843,7 @@ function refreshAfterReset() {
   const toDate = document.getElementById("toDate")?.value;
   if (fromDate && toDate) loadStats();
 }
-
+/*
 // ===== SYSTEM CONTROL =====
 function toggleSystem(state) {
   db.ref("config/enabled").set(state);
@@ -865,7 +866,7 @@ db.ref("status").on("value", (snapshot) => {
     ? "Online"
     : "Offline";
 });
-
+*/
 // ===== WIFI CONFIG =====
 function openWifiConfig() {
   const frameBox = document.getElementById("wifiFrameBox");

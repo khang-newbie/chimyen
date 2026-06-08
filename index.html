@@ -26,7 +26,6 @@
       <a href="#" onclick="showPage('export')">Hỗ trợ</a>
       <a href="#" onclick="showPage('about')">Giới thiệu</a>
     </div>
-
     <!-- MAIN -->
     <div class="main">
       <!-- TRANG CHỦ -->
@@ -66,256 +65,71 @@
       <!-- KẾT NỐI -->
       <div id="connect" class="page" style="display: none">
         <h2 style="margin-bottom: 20px">Kết nối thiết bị</h2>
-        <!--
+
         <div class="connect-grid">
-          <button class="btn danger" onclick="resetESP()">Reset ESP32</button>
-          <button
-            class="btn gray"
-            onclick="resetAllData()"
-            style="margin-top: 10px"
-          >
-            Reset dữ liệu
-          </button>
-        
-          
-          <div class="connect-card">
-            <h3>Trạng thái hệ thống</h3>
-            <div class="status-row">
-              <span>ESP32:</span>
-              <span id="espStatus" class="status offline">Offline</span>
-            </div>
-
-            <div class="status-row">
-              <span>Radar:</span>
-              <span id="radarStatus" class="status offline">Offline</span>
-            </div>
-          </div>
-
-          
-          <div class="connect-card">
-            <h3>Ngưỡng phát hiện</h3>
-
-            <input
-              type="range"
-              id="thresholdSlider"
-              min="10"
-              max="100"
-              value="25"
-              oninput="updateThresholdValue(this.value)"
-            />
-
-            <div class="slider-value">
-              Ngưỡng: <span id="thresholdValue">25</span>
-            </div>
-
-            <button class="btn-save" onclick="saveThreshold()">Lưu</button>
-          </div>
--->
-          
-          <div class="connect-card">
+          <div class="connect-card connect-card-large">
             <h3>Điều khiển</h3>
+            <button class="btn danger" onclick="resetESP()">Reset ESP32</button>
+            <button class="btn gray" onclick="resetAllData()" style="margin-top: 10px">Reset toàn bộ dữ liệu</button>
+            <button class="btn" onclick="showResetPanel()" style="margin-top: 10px">Reset theo ngày/tháng</button>
 
-            <button class="btn danger" onclick="showResetPanel()">
-              Reset dữ liệu
-            </button>
+            <div id="resetPanel" style="display: none; margin-top: 16px">
+              <button class="btn" onclick="showDayResetPanel()" style="width:100%; margin-bottom:8px; background:#f59e0b; color:white; border:none">Reset ngày</button>
+              <button class="btn" onclick="showMonthResetPanel()" style="width:100%; margin-bottom:8px; background:#7c3aed; color:white; border:none">Reset tháng</button>
 
-            <div style="margin-top: 10px">
-              <div id="resetPanel" style="display: none; margin-top: 8px">
-                <button
-                  class="btn"
-                  onclick="showDayResetPanel()"
-                  style="
-                    width: 100%;
-                    margin-bottom: 8px;
-                    background: #f59e0b;
-                    color: white;
-                    border: none;
-                  "
-                >
-                  Reset ngày
-                </button>
-                <button
-                  class="btn"
-                  onclick="showMonthResetPanel()"
-                  style="
-                    width: 100%;
-                    margin-bottom: 8px;
-                    background: #7c3aed;
-                    color: white;
-                    border: none;
-                  "
-                >
-                  Reset tháng
-                </button>
-
-                <div id="dayResetPanel" style="display: none; margin-top: 8px">
-                  <label
-                    style="
-                      display: block;
-                      margin-bottom: 8px;
-                      font-size: 14px;
-                      color: #94a3b8;
-                    "
-                    >Chọn ngày để reset</label
-                  >
-                  <div style="display: flex; gap: 8px; margin-bottom: 8px">
-                    <select
-                      id="resetDayDay"
-                      style="
-                        flex: 1;
-                        padding: 10px;
-                        border-radius: 8px;
-                        border: 1px solid #334155;
-                        background: #0f172a;
-                        color: #e2e8f0;
-                      "
-                    ></select>
-                    <select
-                      id="resetDayMonth"
-                      style="
-                        flex: 1;
-                        padding: 10px;
-                        border-radius: 8px;
-                        border: 1px solid #334155;
-                        background: #0f172a;
-                        color: #e2e8f0;
-                      "
-                    ></select>
-                    <select
-                      id="resetDayYear"
-                      style="
-                        flex: 1;
-                        padding: 10px;
-                        border-radius: 8px;
-                        border: 1px solid #334155;
-                        background: #0f172a;
-                        color: #e2e8f0;
-                      "
-                    ></select>
-                  </div>
-                  <button
-                    class="btn gray"
-                    onclick="confirmResetDay()"
-                    style="margin-top: 10px; width: 100%"
-                  >
-                    Xác nhận reset ngày
-                  </button>
+              <div id="dayResetPanel" style="display:none; margin-top:8px">
+                <label style="display:block; margin-bottom:8px; font-size:14px; color:#94a3b8">Chọn ngày để reset</label>
+                <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap: wrap;">
+                  <select id="resetDayDay" style="flex:1; min-width:100px; padding:10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0"></select>
+                  <select id="resetDayMonth" style="flex:1; min-width:100px; padding:10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0"></select>
+                  <select id="resetDayYear" style="flex:1; min-width:100px; padding:10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0"></select>
                 </div>
+                <button class="btn gray" onclick="confirmResetDay()" style="margin-top:10px; width:100%">Xác nhận reset ngày</button>
+              </div>
 
-                <div
-                  id="monthResetPanel"
-                  style="display: none; margin-top: 8px"
-                >
-                  <label
-                    style="
-                      display: block;
-                      margin-bottom: 8px;
-                      font-size: 14px;
-                      color: #94a3b8;
-                    "
-                    >Chọn tháng để reset</label
-                  >
-                  <div style="display: flex; gap: 10px; margin-bottom: 10px">
-                    <select
-                      id="resetMonthMonth"
-                      style="
-                        flex: 1;
-                        padding: 10px;
-                        border-radius: 8px;
-                        border: 1px solid #334155;
-                        background: #0f172a;
-                        color: #e2e8f0;
-                      "
-                    >
-                      <option value="01">01</option>
-                      <option value="02">02</option>
-                      <option value="03">03</option>
-                      <option value="04">04</option>
-                      <option value="05">05</option>
-                      <option value="06">06</option>
-                      <option value="07">07</option>
-                      <option value="08">08</option>
-                      <option value="09">09</option>
-                      <option value="10">10</option>
-                      <option value="11">11</option>
-                      <option value="12">12</option>
-                    </select>
-                    <select
-                      id="resetMonthYear"
-                      style="
-                        flex: 1;
-                        padding: 10px;
-                        border-radius: 8px;
-                        border: 1px solid #334155;
-                        background: #0f172a;
-                        color: #e2e8f0;
-                      "
-                    ></select>
-                  </div>
-                  <button
-                    class="btn gray"
-                    onclick="confirmResetMonth()"
-                    style="margin-top: 10px; width: 100%"
-                  >
-                    Xác nhận reset tháng
-                  </button>
+              <div id="monthResetPanel" style="display:none; margin-top:8px">
+                <label style="display:block; margin-bottom:8px; font-size:14px; color:#94a3b8">Chọn tháng để reset</label>
+                <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap: wrap;">
+                  <select id="resetMonthMonth" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0">
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                    <option value="04">04</option>
+                    <option value="05">05</option>
+                    <option value="06">06</option>
+                    <option value="07">07</option>
+                    <option value="08">08</option>
+                    <option value="09">09</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                  <select id="resetMonthYear" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0"></select>
                 </div>
+                <button class="btn gray" onclick="confirmResetMonth()" style="margin-top:10px; width:100%">Xác nhận reset tháng</button>
+              </div>
 
-                <div
-                  id="resetMessage"
-                  class="undo-box"
-                  style="display: none; margin-top: 10px"
-                >
-                  <p id="resetMessageText"></p>
-                  <button
-                    class="btn-save"
-                    onclick="undoReset()"
-                    id="undoResetBtn"
-                  >
-                    Khôi phục trong <span id="undoCountdown">10</span>s
-                  </button>
-                </div>
+              <div id="resetMessage" class="undo-box" style="display:none; margin-top:10px">
+                <p id="resetMessageText"></p>
+                <button class="btn-save" onclick="undoReset()" id="undoResetBtn">Khôi phục trong <span id="undoCountdown">10</span>s</button>
               </div>
             </div>
-
-            <button class="btn" onclick="toggleSystem(true)">
-              Bật hệ thống
-            </button>
-            <button class="btn gray" onclick="toggleSystem(false)">
-              Tắt hệ thống
-            </button>
           </div>
-        
-          <!-- WIFI CONFIG -->
-          <div class="connect-card" style="width: 100%">
+<!--
+          <div class="connect-card">
+            <h3>Trạng thái hệ thống</h3>
+            <div class="status-row"><span>ESP32:</span><span id="espStatus" class="status offline">Offline</span></div>
+            <div class="status-row"><span>Radar:</span><span id="radarStatus" class="status offline">Offline</span></div>
+            <button class="btn" onclick="toggleSystem(true)" style="margin-top:10px">Bật hệ thống</button>
+            <button class="btn gray" onclick="toggleSystem(false)" style="margin-top:10px">Tắt hệ thống</button>
+          </div>
+        -->
+          <div class="connect-card connect-card-full">
             <h3>Cấu hình WiFi ESP32</h3>
-
-            <p style="color: #94a3b8; font-size: 14px">
-              Kết nối điện thoại hoặc laptop vào WiFi của ESP32 rồi quét mạng
-              WiFi xung quanh.
-            </p>
-
-            <button class="btn" onclick="openWifiConfig()">
-              Mở cấu hình WiFi
-            </button>
-
-            <div
-              id="wifiFrameBox"
-              style="
-                margin-top: 15px;
-                display: none;
-                border-radius: 12px;
-                overflow: hidden;
-                border: 1px solid #334155;
-              "
-            >
-              <iframe
-                id="wifiFrame"
-                src=""
-                width="100%"
-                height="500"
-                style="border: none; background: white"
-              ></iframe>
+            <p style="color:#94a3b8; font-size:14px">Kết nối điện thoại hoặc laptop vào WiFi của ESP32 rồi quét mạng WiFi xung quanh.</p>
+            <button class="btn" onclick="openWifiConfig()">Mở cấu hình WiFi</button>
+            <div id="wifiFrameBox" style="margin-top:15px; display:none; border-radius:12px; overflow:hidden; border:1px solid #334155">
+              <iframe id="wifiFrame" src="" width="100%" height="500" style="border:none; background:white"></iframe>
             </div>
           </div>
         </div>
