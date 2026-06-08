@@ -218,46 +218,122 @@ function drawMonthChart(vao, ra, tong) {
 }
 
 // ===== LOAD DAILY CHART (REAL-TIME) =====
-function loadChart() {
-  let today = new Date().toISOString().split("T")[0];
+let currentDate = "";
+let currentRef = null;
+// đổi sang múi giờ Việt Nam và định dạng ngày tháng năm để lấy dữ liệu theo ngày hiện tại của Việt Nam,
+// tránh bị lệch do múi giờ khi chạy trên server nước ngoài
+function getVNNow() {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 
-  const hours = [];
+  const parts = formatter.formatToParts(now);
+  const values = {};
+  parts.forEach((part) => {
+    if (part.type !== "literal") {
+      values[part.type] = part.value;
+    }
+  });
+
+  return new Date(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day),
+    Number(values.hour),
+    Number(values.minute),
+    Number(values.second),
+  );
+}
+
+function getVNDate() {
+  const now = getVNNow();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function loadChart() {
+  const today = getVNDate();
+
+  // Nếu vẫn cùng ngày thì không làm gì
+  if (today === currentDate && currentRef) return;
+
+  currentDate = today;
+
+  console.log("Listening to:", today);
+
+  // Hủy listener cũ
+  if (currentRef) {
+    currentRef.off();
+  }
+
+  const hours = Array.from(
+    { length: 24 },
+    (_, i) => String(i).padStart(2, "0") + ":00",
+  );
+
   const vao = new Array(24).fill(0);
   const ra = new Array(24).fill(0);
 
-  let loaded = 0;
+  currentRef = db.ref("bird_data/" + today);
 
-  function updateChartDisplay() {
+  currentRef.on("value", (snapshot) => {
+    const data = snapshot.val() || {};
+
+    vao.fill(0);
+    ra.fill(0);
+
+    for (let hourKey in data) {
+      if (!Object.prototype.hasOwnProperty.call(data, hourKey)) continue;
+
+      let h = hourKey;
+
+      if (h.includes(":")) {
+        h = h.split(":")[0];
+      }
+
+      h = String(parseInt(h, 10)).padStart(2, "0");
+
+      const idx = parseInt(h, 10);
+
+      if (isNaN(idx) || idx < 0 || idx > 23) continue;
+
+      const entry = data[hourKey] || {};
+
+      vao[idx] = entry.vao || 0;
+      ra[idx] = entry.ra || 0;
+    }
+
     if (!lineChart) {
       drawChart(hours, vao, ra);
     } else {
+      lineChart.data.labels = hours;
       lineChart.data.datasets[0].data = vao;
       lineChart.data.datasets[1].data = ra;
+
       lineChart.update();
     }
-  }
-
-  for (let h = 0; h <= 23; h++) {
-    let hour = h.toString().padStart(2, "0");
-    let index = h;
-
-    hours[index] = hour + ":00";
-
-    db.ref("bird_data/" + today + "/" + hour).on("value", (snapshot) => {
-      let data = snapshot.val() || {};
-
-      vao[index] = data.vao || 0;
-      ra[index] = data.ra || 0;
-
-      loaded++;
-      if (loaded >= 24) {
-        updateChartDisplay();
-      }
-    });
-  }
+  });
 }
 
+// Chạy lần đầu
 loadChart();
+
+// Mỗi phút kiểm tra xem có sang ngày mới chưa
+setInterval(() => {
+  loadChart();
+}, 60000);
 
 // ===== LOAD MONTHLY CHART =====
 function loadMonthChart() {
@@ -306,8 +382,8 @@ function initStatsDateSelects() {
   if (!fromDay || !fromMonth || !fromYear || !toDay || !toMonth || !toYear)
     return;
 
-  const current = new Date();
-  const currentYear = current.getFullYear();
+  const currentVN = getVNNow();
+  const currentYear = currentVN.getFullYear();
   const monthOptions = Array.from({ length: 12 }, (_, i) =>
     String(i + 1).padStart(2, "0"),
   );
@@ -350,10 +426,10 @@ function initStatsDateSelects() {
 
   if (!fromYear.value) fromYear.value = currentYear;
   if (!fromMonth.value)
-    fromMonth.value = String(current.getMonth() + 1).padStart(2, "0");
+    fromMonth.value = String(currentVN.getMonth() + 1).padStart(2, "0");
   if (!toYear.value) toYear.value = currentYear;
   if (!toMonth.value)
-    toMonth.value = String(current.getMonth() + 1).padStart(2, "0");
+    toMonth.value = String(currentVN.getMonth() + 1).padStart(2, "0");
 
   populateDay(fromDay, fromYear.value, fromMonth.value);
   populateDay(toDay, toYear.value, toMonth.value);
@@ -366,8 +442,8 @@ function initStatsDateSelects() {
   toMonth.onchange = () => populateDay(toDay, toYear.value, toMonth.value);
 
   if (!fromDay.value)
-    fromDay.value = String(current.getDate()).padStart(2, "0");
-  if (!toDay.value) toDay.value = String(current.getDate()).padStart(2, "0");
+    fromDay.value = String(currentVN.getDate()).padStart(2, "0");
+  if (!toDay.value) toDay.value = String(currentVN.getDate()).padStart(2, "0");
 }
 
 function toggleStatsDatePanel() {
@@ -383,7 +459,7 @@ function getStatsDate(prefix) {
   const year = document.getElementById(`${prefix}Year`).value;
   return day && month && year ? `${year}-${month}-${day}` : "";
 }
-
+// tải dữ liệu thống kê theo ngày đã chọn trong panel thống kê
 function loadStats() {
   const fromDate = getStatsDate("from");
   const toDate = getStatsDate("to");
@@ -396,22 +472,19 @@ function loadStats() {
     return;
   }
 
-  let currentTotal = 0;
-
   db.ref("bird_data")
     .once("value")
     .then((snapshot) => {
-      const data = snapshot.val();
+      const data = snapshot.val() || {};
 
       for (let date in data) {
         if (date >= fromDate && date <= toDate) {
-          const hours = data[date];
+          const hours = data[date] || {};
 
           for (let hour in hours) {
             const vao = hours[hour].vao || 0;
             const ra = hours[hour].ra || 0;
-
-            currentTotal += vao - ra;
+            const netHour = vao - ra;
 
             table.innerHTML += `
           <tr>
@@ -419,7 +492,7 @@ function loadStats() {
             <td>${hour}:00</td>
             <td>${vao}</td>
             <td>${ra}</td>
-            <td>${currentTotal}</td>
+            <td>${netHour}</td>
           </tr>
           `;
           }
@@ -427,7 +500,7 @@ function loadStats() {
       }
     });
 }
-
+//xuất dữ liệu thống kê ra file excel
 function exportToExcel() {
   const table = document.querySelector("table");
   const workbook = XLSX.utils.table_to_book(table, {
@@ -437,7 +510,7 @@ function exportToExcel() {
   XLSX.writeFile(workbook, "ThongKeNhaYen.xlsx");
 }
 
-// ===== SUPPORT =====
+// ===== hỗ trợ =====
 function sendEmail() {
   let now = new Date().toLocaleString();
 
@@ -455,6 +528,7 @@ function sendEmail() {
 }
 
 // ===== CONNECTION & THRESHOLD =====
+/* ngưỡng và wifi
 function updateThresholdValue(val) {
   document.getElementById("thresholdValue").innerText = val;
 }
@@ -476,7 +550,7 @@ function saveWifiConfig() {
   db.ref("config/wifi").set({ ssid, pass });
   document.getElementById("wifiStatusText").innerText = "Đã lưu cấu hình WiFi.";
 }
-
+*/
 db.ref("config/wifi").on("value", (snapshot) => {
   const data = snapshot.val() || {};
   document.getElementById("wifiSsid").value = data.ssid || "";
@@ -497,7 +571,7 @@ function resetCounter() {
   db.ref("tong_ra").set(0);
   alert("Đã reset counters!");
 }
-
+// xóa hết dữ liệu và đưa về 0 tất cả
 function resetAllData() {
   if (!confirm("Bạn có chắc chắn muốn xóa hết dữ liệu và đưa về 0?")) return;
 
@@ -585,6 +659,7 @@ function showDayResetPanel() {
   document.getElementById("monthResetPanel").style.display = "none";
 }
 
+// chọn ngày tháng năm để xem trong thống kê
 function initMonthResetSelect() {
   const yearSelect = document.getElementById("resetMonthYear");
   if (yearSelect.options.length > 0) return;
@@ -642,6 +717,7 @@ function confirmResetDay() {
       });
   });
 }
+//xóa dữ liệu ngày đã chọn nhưng vẫn giữ tổng tháng đó để không ảnh hưởng đến biểu đồ tháng,
 
 function confirmResetMonth() {
   const month = document.getElementById("resetMonthMonth").value;
@@ -729,7 +805,7 @@ function hideResetMessage() {
   const undoBox = document.getElementById("resetMessage");
   if (undoBox) undoBox.style.display = "none";
 }
-
+// khôi phục dữ liệu đã xóa trong 10 giây sau khi reset
 function undoReset() {
   if (!lastDeletedData) return;
 
@@ -771,7 +847,7 @@ function refreshAfterReset() {
 function toggleSystem(state) {
   db.ref("config/enabled").set(state);
 }
-
+// trạng thái on/off của esp32 và radar
 db.ref("status").on("value", (snapshot) => {
   const data = snapshot.val() || {};
 

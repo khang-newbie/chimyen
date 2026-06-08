@@ -68,53 +68,17 @@
         <h2 style="margin-bottom: 20px">Kết nối thiết bị</h2>
 
         <div class="connect-grid">
-          <button class="btn danger" onclick="resetESP()">Reset ESP32</button>
-          <button
-            class="btn gray"
-            onclick="resetAllData()"
-            style="margin-top: 10px"
-          >
-            Reset dữ liệu
-          </button>
-          <!--
-          <div class="connect-card">
-            <h3>Trạng thái hệ thống</h3>
-            <div class="status-row">
-              <span>ESP32:</span>
-              <span id="espStatus" class="status offline">Offline</span>
+          <div class="connect-card" style="width: 100%">
+            <h3>Reset & điều khiển ESP32</h3>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn danger" onclick="resetESP()" style="flex: 1; min-width: 160px;">
+                Reset ESP32
+              </button>
+              <button class="btn gray" onclick="showResetPanel()" style="flex: 1; min-width: 160px;">
+                Reset dữ liệu
+              </button>
             </div>
-
-            <div class="status-row">
-              <span>Radar:</span>
-              <span id="radarStatus" class="status offline">Offline</span>
-            </div>
-          </div>
-
-          <div class="connect-card">
-            <h3>Ngưỡng phát hiện</h3>
-
-            <input
-              type="range"
-              id="thresholdSlider"
-              min="10"
-              max="100"
-              value="25"
-              oninput="updateThresholdValue(this.value)"
-            />
-
-            <div class="slider-value">
-              Ngưỡng: <span id="thresholdValue">25</span>
-            </div>
-
-            <button class="btn-save" onclick="saveThreshold()">Lưu</button>
-          </div>
-
-          <div class="connect-card">
-            <h3>Điều khiển</h3>
-
-            <button class="btn danger" onclick="showResetPanel()">
-              Reset dữ liệu
-            </button>
 
             <div style="margin-top: 10px">
               <div id="resetPanel" style="display: none; margin-top: 8px">
@@ -274,15 +238,17 @@
                 </div>
               </div>
             </div>
-
+<!--
             <button class="btn" onclick="toggleSystem(true)">
               Bật hệ thống
             </button>
             <button class="btn gray" onclick="toggleSystem(false)">
               Tắt hệ thống
             </button>
+             -->
+            
           </div>
-          -->
+         
 
           <!-- WIFI CONFIG -->
           <div class="connect-card" style="width: 100%">
