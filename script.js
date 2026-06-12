@@ -93,6 +93,9 @@ function drawChart(hours, vao, ra) {
           },
           ticks: {
             color: "#94a3b8",
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0,
           },
           title: {
             display: true,
@@ -183,6 +186,9 @@ function drawMonthChart(vao, ra, tong) {
           },
           ticks: {
             color: "#94a3b8",
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0,
           },
           title: {
             display: true,
