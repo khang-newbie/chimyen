@@ -277,9 +277,8 @@ function loadChart() {
     currentRef.off();
   }
 
-  const hours = Array.from(
-    { length: 24 },
-    (_, i) => String(i).padStart(2, "0") + ":00",
+  const hours = Array.from({ length: 24 }, (_, i) =>
+    String(i).padStart(2, "0"),
   );
 
   const vao = new Array(24).fill(0);
