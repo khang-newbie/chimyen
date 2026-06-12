@@ -8,25 +8,18 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ===== DISPLAY VALUES =====
-const chimVaoRef = db.ref("tong_vao");
-chimVaoRef.on("value", (snapshot) => {
-  const value = snapshot.val() || 0;
-  document.querySelectorAll(".big-number")[0].innerText = value;
-});
+function updateDailySummary(vaoTotal, raTotal) {
+  const totals = [vaoTotal, raTotal, vaoTotal - raTotal];
+  const bigNumbers = document.querySelectorAll(".big-number");
 
-const chimRaRef = db.ref("tong_ra");
-chimRaRef.on("value", (snapshot) => {
-  const value = snapshot.val() || 0;
-  document.querySelectorAll(".big-number")[1].innerText = value;
-});
+  if (bigNumbers.length >= 3) {
+    bigNumbers[0].innerText = totals[0];
+    bigNumbers[1].innerText = totals[1];
+    bigNumbers[2].innerText = totals[2];
+  }
+}
 
-db.ref("/").on("value", (snapshot) => {
-  const data = snapshot.val() || {};
-  const vao = data.tong_vao || 0;
-  const ra = data.tong_ra || 0;
-  const tong = vao - ra;
-  document.querySelectorAll(".big-number")[2].innerText = tong;
-});
+updateDailySummary(0, 0);
 
 // ===== PAGE NAVIGATION =====
 function showPage(pageId) {
@@ -314,6 +307,11 @@ function loadChart() {
       vao[idx] = entry.vao || 0;
       ra[idx] = entry.ra || 0;
     }
+
+    const totalVao = vao.reduce((sum, value) => sum + value, 0);
+    const totalRa = ra.reduce((sum, value) => sum + value, 0);
+
+    updateDailySummary(totalVao, totalRa);
 
     if (!lineChart) {
       drawChart(hours, vao, ra);
@@ -843,30 +841,32 @@ function refreshAfterReset() {
   const toDate = document.getElementById("toDate")?.value;
   if (fromDate && toDate) loadStats();
 }
-/*
+
 // ===== SYSTEM CONTROL =====
+/*
 function toggleSystem(state) {
   db.ref("config/enabled").set(state);
 }
+  */
 // trạng thái on/off của esp32 và radar
 db.ref("status").on("value", (snapshot) => {
   const data = snapshot.val() || {};
+  const espOnline = data.esp === true || data.esp === "true";
+  const radarOnline = data.radar === true || data.radar === "true";
 
   document.getElementById("espStatus").className =
-    "status " + (data.esp ? "online" : "offline");
-
-  document.getElementById("espStatus").innerText = data.esp
+    "status " + (espOnline ? "online" : "offline");
+  document.getElementById("espStatus").innerText = espOnline
     ? "Online"
     : "Offline";
 
   document.getElementById("radarStatus").className =
-    "status " + (data.radar ? "online" : "offline");
-
-  document.getElementById("radarStatus").innerText = data.radar
+    "status " + (radarOnline ? "online" : "offline");
+  document.getElementById("radarStatus").innerText = radarOnline
     ? "Online"
     : "Offline";
 });
-*/
+
 // ===== WIFI CONFIG =====
 function openWifiConfig() {
   const frameBox = document.getElementById("wifiFrameBox");
