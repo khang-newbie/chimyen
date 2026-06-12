@@ -93,9 +93,6 @@ function drawChart(hours, vao, ra) {
           },
           ticks: {
             color: "#94a3b8",
-            autoSkip: false,
-            maxRotation: 0,
-            minRotation: 0,
           },
           title: {
             display: true,
@@ -186,9 +183,6 @@ function drawMonthChart(vao, ra, tong) {
           },
           ticks: {
             color: "#94a3b8",
-            autoSkip: false,
-            maxRotation: 0,
-            minRotation: 0,
           },
           title: {
             display: true,
@@ -277,8 +271,9 @@ function loadChart() {
     currentRef.off();
   }
 
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    String(i).padStart(2, "0"),
+  const hours = Array.from(
+    { length: 24 },
+    (_, i) => String(i).padStart(2, "0") + ":00",
   );
 
   const vao = new Array(24).fill(0);
@@ -848,26 +843,24 @@ function refreshAfterReset() {
 }
 
 // ===== SYSTEM CONTROL =====
-/*
 function toggleSystem(state) {
   db.ref("config/enabled").set(state);
 }
-  */
 // trạng thái on/off của esp32 và radar
 db.ref("status").on("value", (snapshot) => {
   const data = snapshot.val() || {};
-  const espOnline = data.esp === true || data.esp === "true";
-  const radarOnline = data.radar === true || data.radar === "true";
 
   document.getElementById("espStatus").className =
-    "status " + (espOnline ? "online" : "offline");
-  document.getElementById("espStatus").innerText = espOnline
+    "status " + (data.esp ? "online" : "offline");
+
+  document.getElementById("espStatus").innerText = data.esp
     ? "Online"
     : "Offline";
 
   document.getElementById("radarStatus").className =
-    "status " + (radarOnline ? "online" : "offline");
-  document.getElementById("radarStatus").innerText = radarOnline
+    "status " + (data.radar ? "online" : "offline");
+
+  document.getElementById("radarStatus").innerText = data.radar
     ? "Online"
     : "Offline";
 });
