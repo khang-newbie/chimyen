@@ -557,7 +557,7 @@ function sendEmail() {
     "Hệ thống: Nhà Yến IoT";
 
   window.location.href =
-    "mailto:khangb2204563@stuent.ctu.edu.vn,duyb2204543@stuent.ctu.edu.vn?subject=Hỗ trợ hệ thống&body=" +
+    "mailto:khangb2204563@student.ctu.edu.vn,duyb2204543@student.ctu.edu.vn?subject=Hỗ trợ hệ thống&body=" +
     encodeURIComponent(body);
 }
 
