@@ -8,6 +8,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ===== DISPLAY VALUES =====
+// updateDailySummary: cập nhật số liệu tổng chim vào,ra và hiệu số trên giao diện dashboard.
 function updateDailySummary(vaoTotal, raTotal) {
   const totals = [vaoTotal, raTotal, vaoTotal - raTotal];
   const bigNumbers = document.querySelectorAll(".big-number");
@@ -22,6 +23,7 @@ function updateDailySummary(vaoTotal, raTotal) {
 updateDailySummary(0, 0);
 
 // ===== PAGE NAVIGATION =====
+// showPage: chuyển đổi giữa các trang màn hình trong ứng dụng, đồng thời khởi tạo lịch chọn ngày cho trang thống kê khi cần.
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach((p) => {
     p.style.display = "none";
@@ -43,6 +45,7 @@ function showPage(pageId) {
 // ===== CHARTS =====
 let lineChart;
 
+// drawChart: tạo hoặc cập nhật biểu đồ đường hàng giờ cho dữ liệu chim vào và chim ra
 function drawChart(hours, vao, ra) {
   const ctx = document.getElementById("lineChart");
 
@@ -121,6 +124,7 @@ function drawChart(hours, vao, ra) {
 }
 
 let monthChart;
+// drawMonthChart: tạo hoặc cập nhật biểu đồ cột tháng cho tổng 'chim vào', 'chim ra' và 'tổng' theo tháng.
 function drawMonthChart(vao, ra, tong) {
   const ctx = document.getElementById("barChart");
   if (monthChart) {
@@ -213,8 +217,7 @@ function drawMonthChart(vao, ra, tong) {
 // ===== LOAD DAILY CHART (REAL-TIME) =====
 let currentDate = "";
 let currentRef = null;
-// đổi sang múi giờ Việt Nam và định dạng ngày tháng năm để lấy dữ liệu theo ngày hiện tại của Việt Nam,
-// tránh bị lệch do múi giờ khi chạy trên server nước ngoài
+// getVNNow: trả về đối tượng Date hiện tại theo múi giờ Asia/Ho_Chi_Minh (giờ Việt Nam), tránh sai lệch khi truy cập từ server hoặc trình duyệt khác múi giờ.
 function getVNNow() {
   const now = new Date();
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -246,6 +249,7 @@ function getVNNow() {
   );
 }
 
+// getVNDate: trả về ngày hiện tại ở định dạng YYYY-MM-DD theo giờ Việt Nam.
 function getVNDate() {
   const now = getVNNow();
 
@@ -256,6 +260,7 @@ function getVNDate() {
   return `${year}-${month}-${day}`;
 }
 
+// loadChart: lắng nghe dữ liệu ngày hiện tại từ Firebase Realtime Database và vẽ biểu đồ hàng giờ kèm số liệu tổng.
 function loadChart() {
   const today = getVNDate();
 
@@ -334,6 +339,7 @@ setInterval(() => {
 }, 60000);
 
 // ===== LOAD MONTHLY CHART =====
+// loadMonthChart: lắng nghe toàn bộ dữ liệu bird_data và xây dựng biểu đồ tổng theo tháng.
 function loadMonthChart() {
   db.ref("bird_data").on("value", (snapshot) => {
     const data = snapshot.val() || {};
@@ -365,11 +371,13 @@ function loadMonthChart() {
 loadMonthChart();
 
 // ===== STATISTICS =====
+// formatDateVN: chuyển đổi định dạng ngày từ YYYY-MM-DD sang DD/MM/YYYY để hiển thị cho người dùng.
 function formatDateVN(dateStr) {
   const [year, month, day] = dateStr.split("-");
   return `${day}/${month}/${year}`;
 }
 
+// initStatsDateSelects: khởi tạo các menu chọn ngày/tháng/năm cho bảng thống kê, với giá trị mặc định là ngày hiện tại.
 function initStatsDateSelects() {
   const fromDay = document.getElementById("fromDay");
   const fromMonth = document.getElementById("fromMonth");
@@ -444,6 +452,7 @@ function initStatsDateSelects() {
   if (!toDay.value) toDay.value = String(currentVN.getDate()).padStart(2, "0");
 }
 
+// toggleStatsDatePanel: hiển thị hoặc ẩn panel chọn ngày thống kê khi người dùng muốn lọc dữ liệu.
 function toggleStatsDatePanel() {
   const panel = document.getElementById("statsDatePanel");
   if (!panel) return;
@@ -451,6 +460,7 @@ function toggleStatsDatePanel() {
   panel.style.display = panel.style.display === "none" ? "block" : "none";
 }
 
+// getStatsDate: đọc giá trị ngày/tháng/năm từ các select element và trả về chuỗi YYYY-MM-DD.
 function getStatsDate(prefix) {
   const day = document.getElementById(`${prefix}Day`).value;
   const month = document.getElementById(`${prefix}Month`).value;
@@ -458,6 +468,7 @@ function getStatsDate(prefix) {
   return day && month && year ? `${year}-${month}-${day}` : "";
 }
 // tải dữ liệu thống kê theo ngày đã chọn trong panel thống kê
+// loadStats: tải dữ liệu từ Firebase trong khoảng ngày đã chọn và hiển thị bảng thống kê theo ngày/giờ đã sắp xếp.
 function loadStats() {
   const fromDate = getStatsDate("from");
   const toDate = getStatsDate("to");
@@ -475,30 +486,54 @@ function loadStats() {
     .then((snapshot) => {
       const data = snapshot.val() || {};
 
-      for (let date in data) {
-        if (date >= fromDate && date <= toDate) {
-          const hours = data[date] || {};
+      // Collect dates in range and sort them ascending
+      const dates = Object.keys(data)
+        .filter((d) => d >= fromDate && d <= toDate)
+        .sort();
 
-          for (let hour in hours) {
-            const vao = hours[hour].vao || 0;
-            const ra = hours[hour].ra || 0;
-            const netHour = vao - ra;
+      for (let date of dates) {
+        const hoursObj = data[date] || {};
 
-            table.innerHTML += `
+        // Sort hour keys numerically (handle formats like "0", "00", "0:30", "01:00")
+        const hourKeys = Object.keys(hoursObj).sort((a, b) => {
+          const parseHour = (h) => {
+            if (typeof h !== "string") h = String(h);
+            if (h.includes(":")) h = h.split(":")[0];
+            const n = parseInt(h, 10);
+            return isNaN(n) ? 0 : n;
+          };
+          return parseHour(a) - parseHour(b);
+        });
+
+        for (let hour of hourKeys) {
+          const entry = hoursObj[hour] || {};
+          const vao = entry.vao || 0;
+          const ra = entry.ra || 0;
+          const netHour = vao - ra;
+
+          let hourLabel = hour;
+          if (hourLabel.includes(":")) hourLabel = hourLabel.split(":")[0];
+          const hourNum = parseInt(hourLabel, 10);
+          const hourDisplay = String(isNaN(hourNum) ? 0 : hourNum).padStart(
+            2,
+            "0",
+          );
+
+          table.innerHTML += `
           <tr>
             <td>${formatDateVN(date)}</td>
-            <td>${hour}:00</td>
+            <td>${hourDisplay}:00</td>
             <td>${vao}</td>
             <td>${ra}</td>
             <td>${netHour}</td>
           </tr>
           `;
-          }
         }
       }
     });
 }
 //xuất dữ liệu thống kê ra file excel
+// exportToExcel: xuất nội dung bảng HTML hiện tại ra file Excel .xlsx bằng thư viện XLSX.
 function exportToExcel() {
   const table = document.querySelector("table");
   const workbook = XLSX.utils.table_to_book(table, {
@@ -509,6 +544,7 @@ function exportToExcel() {
 }
 
 // ===== hỗ trợ =====
+// sendEmail: mở trình gửi email mặc định để người dùng gửi yêu cầu hỗ trợ đến địa chỉ kỹ thuật.
 function sendEmail() {
   let now = new Date().toLocaleString();
 
@@ -526,16 +562,18 @@ function sendEmail() {
 }
 
 // ===== CONNECTION & THRESHOLD =====
-// ngưỡng và wifi
+// updateThresholdValue: cập nhật nhãn hiển thị giá trị ngưỡng khi người dùng kéo slider.
 function updateThresholdValue(val) {
   document.getElementById("thresholdValue").innerText = val;
 }
 
+// saveThreshold: lưu giá trị ngưỡng radar vào Firebase để ESP32 sử dụng cấu hình.
 function saveThreshold() {
   const value = document.getElementById("thresholdSlider").value;
   db.ref("config/threshold").set(parseInt(value));
 }
 
+// saveWifiConfig: lưu cấu hình SSID và mật khẩu WiFi vào Firebase để ESP32 có thể kết nối lại.
 function saveWifiConfig() {
   const ssid = document.getElementById("wifiSsid").value.trim();
   const pass = document.getElementById("wifiPass").value;
@@ -549,6 +587,7 @@ function saveWifiConfig() {
   document.getElementById("wifiStatusText").innerText = "Đã lưu cấu hình WiFi.";
 }
 
+// Lắng nghe config WiFi từ Firebase và cập nhật giao diện nhập SSID/mật khẩu.
 db.ref("config/wifi").on("value", (snapshot) => {
   const data = snapshot.val() || {};
   document.getElementById("wifiSsid").value = data.ssid || "";
@@ -589,6 +628,7 @@ function resetAllData() {
     });
 }
 */
+// saveCurrentTotalsForUndo: lưu giá trị tổng hiện tại để có thể khôi phục khi undo reset dữ liệu.
 function saveCurrentTotalsForUndo() {
   return Promise.all([
     db.ref("tong_vao").once("value"),
@@ -601,11 +641,13 @@ function saveCurrentTotalsForUndo() {
   });
 }
 
+// showResetPanel: bật/tắt panel reset toàn bộ dữ liệu hoặc data theo ngày/tháng.
 function showResetPanel() {
   const panel = document.getElementById("resetPanel");
   panel.style.display = panel.style.display === "none" ? "block" : "none";
 }
 
+// initDaySelect: khởi tạo các select ngày/tháng/năm cho chức năng reset theo ngày.
 function initDaySelect() {
   const daySel = document.getElementById("resetDayDay");
   const monthSel = document.getElementById("resetDayMonth");
@@ -652,6 +694,7 @@ function initDaySelect() {
   populateDays();
 }
 
+// showDayResetPanel: hiển thị panel reset theo ngày và ẩn panel reset theo tháng.
 function showDayResetPanel() {
   initDaySelect();
   document.getElementById("dayResetPanel").style.display = "block";
@@ -659,6 +702,7 @@ function showDayResetPanel() {
 }
 
 // chọn ngày tháng năm để xem trong thống kê
+// initMonthResetSelect: tạo select năm cho chức năng reset theo tháng.
 function initMonthResetSelect() {
   const yearSelect = document.getElementById("resetMonthYear");
   if (yearSelect.options.length > 0) return;
@@ -671,12 +715,14 @@ function initMonthResetSelect() {
   }
 }
 
+// showMonthResetPanel: hiển thị panel reset theo tháng và ẩn panel reset theo ngày.
 function showMonthResetPanel() {
   initMonthResetSelect();
   document.getElementById("monthResetPanel").style.display = "block";
   document.getElementById("dayResetPanel").style.display = "none";
 }
 
+// confirmResetDay: xóa dữ liệu một ngày đã chọn và lưu bản sao để undo trong 10 giây.
 function confirmResetDay() {
   const d = document.getElementById("resetDayDay").value;
   const m = document.getElementById("resetDayMonth").value;
@@ -718,6 +764,7 @@ function confirmResetDay() {
 }
 //xóa dữ liệu ngày đã chọn nhưng vẫn giữ tổng tháng đó để không ảnh hưởng đến biểu đồ tháng,
 
+// confirmResetMonth: xóa toàn bộ dữ liệu trong một tháng đã chọn, đồng thời lưu bản sao để undo.
 function confirmResetMonth() {
   const month = document.getElementById("resetMonthMonth").value;
   const year = document.getElementById("resetMonthYear").value;
@@ -769,6 +816,7 @@ function confirmResetMonth() {
   });
 }
 
+// showUndoMessage: hiển thị thông báo reset và đếm ngược 10 giây để người dùng có thể undo.
 function showUndoMessage(idText, deletedCount, type) {
   const messageEl = document.getElementById("resetMessageText");
   const countdownEl = document.getElementById("undoCountdown");
@@ -800,11 +848,13 @@ function showUndoMessage(idText, deletedCount, type) {
   }, 1000);
 }
 
+// hideResetMessage: ẩn thông báo undo khi thời gian kết thúc hoặc khi undo thành công.
 function hideResetMessage() {
   const undoBox = document.getElementById("resetMessage");
   if (undoBox) undoBox.style.display = "none";
 }
 // khôi phục dữ liệu đã xóa trong 10 giây sau khi reset
+// undoReset: phục hồi lại dữ liệu đã xóa trong 10 giây kể từ khi reset.
 function undoReset() {
   if (!lastDeletedData) return;
 
@@ -834,6 +884,7 @@ function undoReset() {
   });
 }
 
+// refreshAfterReset: làm mới biểu đồ và thống kê sau khi thực hiện reset hoặc undo.
 function refreshAfterReset() {
   if (typeof loadMonthChart === "function") loadMonthChart();
   if (typeof loadChart === "function") loadChart();
@@ -843,6 +894,7 @@ function refreshAfterReset() {
 }
 
 // ===== SYSTEM CONTROL =====
+// toggleSystem: bật/tắt hệ thống ESP32 bằng cách ghi cấu hình enabled vào Firebase.
 function toggleSystem(state) {
   db.ref("config/enabled").set(state);
 }
@@ -866,6 +918,7 @@ db.ref("status").on("value", (snapshot) => {
 });
 
 // ===== WIFI CONFIG =====
+// openWifiConfig: mở iframe tới giao diện cấu hình WiFi của ESP32.
 function openWifiConfig() {
   const frameBox = document.getElementById("wifiFrameBox");
   const frame = document.getElementById("wifiFrame");
@@ -875,10 +928,12 @@ function openWifiConfig() {
 }
 
 // ===== SERVICE WORKER =====
+// Đăng ký service worker để hỗ trợ caching và offline nếu trình duyệt cho phép.
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 
+// resetESP: gửi lệnh reset ESP32 lên Firebase và sau 5 giây xóa lệnh.
 function resetESP() {
   if (confirm("Bạn có chắc muốn reset ESP32?")) {
     const resetRef = db.ref("command/reset_esp");

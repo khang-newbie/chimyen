@@ -309,6 +309,39 @@ input[type="range"] {
   margin: 0 0 10px 0;
   color: #cbd5e1;
 }
+#export {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  background: transparent;
+  box-shadow: none;
+  border: none;
+
+  margin-top: 30px;
+}
+
+.support-box {
+  width: 850px;
+  max-width: 90%;
+
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 15px;
+
+  margin: 0;
+}
+.page{
+    width:100%;
+}
+
+
+
+
+
+
 
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
@@ -395,3 +428,24 @@ input[type="range"] {
     padding: 5px;
   }
 }
+.page {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#stats {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+
+#stats table {
+  width: 100%;
+}
+
+#stats th,
+#stats td {
+  padding: 10px;
+  text-align: center;
+}
+

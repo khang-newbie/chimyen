@@ -30,7 +30,7 @@
     <!-- MAIN -->
     <div class="main">
       <!-- TRANG CHỦ -->
-      <div id="home" class="page">
+      <div id="home" class="page">*
         <div>
           <div class="row">
             <div class="card small mt15">
@@ -66,11 +66,12 @@
       <!-- KẾT NỐI -->
       <div id="connect" class="page" style="display: none">
         <h2 style="margin-bottom: 20px">Kết nối thiết bị</h2>
-
+        <!--
         <div class="connect-grid">
           <div class="connect-card connect-card-large">
             <h3>Điều khiển</h3>
             <button class="btn danger" onclick="resetESP()">Reset ESP32</button>
+            
             <button
               class="btn gray"
               onclick="resetAllData()"
@@ -257,9 +258,8 @@
                   Khôi phục trong <span id="undoCountdown">10</span>s
                 </button>
               </div>
-            </div>
+            </div> 
           </div>
-
           <div class="connect-card">
             <h3>Trạng thái hệ thống</h3>
             <div class="status-row">
@@ -270,10 +270,11 @@
               <span>Radar:</span
               ><span id="radarStatus" class="status offline">Offline</span>
             </div>
-            <!-- <button class="btn" onclick="toggleSystem(true)" style="margin-top:10px">Bật hệ thống</button>
+             <button class="btn" onclick="toggleSystem(true)" style="margin-top:10px">Bật hệ thống</button>
             <button class="btn gray" onclick="toggleSystem(false)" style="margin-top:10px">Tắt hệ thống</button>
-            -->
-          </div>
+           
+          </div> -->
+
 
           <!-- WIFI CONFIG -->
           <div class="connect-card connect-card-full">
@@ -316,6 +317,7 @@
             padding: 20px;
             border-radius: 20px;
             width: 290px;
+            margin: 0 auto;
           "
         >
           <div style="display: grid; gap: 10px">
@@ -511,6 +513,13 @@
             Hệ thống giúp nâng cao hiệu quả quản lý nhà yến, giảm công sức và
             tăng độ chính xác trong việc theo dõi số lượng chim.
           </p>
+          <h3>Hướng dẫn sử dụng</h3>
+          <ol>  
+            <li>Truy cập vào trang chủ của hệ thống để xem số lượng chim vào ra theo thời gian thực.</li>
+            <li>Truy cập vào kết nối để reset esp32 hoặc cấu hình wifi cho esp32.</li>
+            <li>Truy cập vào thống kê để xem kết quả thống kê và xuất file Excel.</li>
+            <li>Truy cập vào hỗ trợ để gửi yêu cầu hỗ trợ nếu gặp sự cố.</li>
+          </ol>
         </div>
       </div>
     </div>
