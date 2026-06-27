@@ -407,15 +407,21 @@ input[type="range"] {
     margin: 20px 0;
     height: 220px;
   }
+/* CONNECT */
+.connect-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
 
-  /* CONNECT */
-  .connect-grid {
-    flex-direction: column;
-  }
-
-  .connect-card {
-    width: 100%;
-  }
+.connect-card,
+.connect-card.connect-card-large,
+.connect-card.connect-card-full {
+  width: 100%;
+  max-width: 350px;      /* hoặc 95% nếu muốn rộng hơn */
+  box-sizing: border-box;
+}
 
   /* TABLE */
   table {
