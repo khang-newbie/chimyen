@@ -447,3 +447,11 @@ input[type="range"] {
   padding: 10px;
   text-align: center;
 }
+@media (max-width:768px){
+
+    #stats{
+        padding:10px !important;
+        margin:0 auto;
+    }
+
+}
